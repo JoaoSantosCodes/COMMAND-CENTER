@@ -1,0 +1,118 @@
+/* Estilo para links do markdown na documentação */
+.markdown-content a {
+  color: #FFA500; /* Laranja */
+  text-decoration: underline;
+  transition: color 0.2s;
+}
+.markdown-content a:hover {
+  color: #FF8800; /* Laranja mais escuro no hover */
+}
+
+/* ===== Índice lateral da documentação ===== */
+.doc-index-sidebar {
+  background: #181820;
+  border-radius: 12px;
+  padding: 18px 20px 18px 20px;
+  margin-bottom: 32px;
+  color: #ffb300;
+  min-width: 240px;
+  max-width: 280px;
+  box-shadow: 0 2px 12px #0002;
+  position: sticky;
+  top: 32px;
+}
+.doc-index-sidebar h3 {
+  color: #ffb300;
+  font-size: 1.2rem;
+  margin-bottom: 12px;
+  font-weight: bold;
+}
+.doc-index-sidebar ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+.doc-index-list.level-2 > li { margin-left: 0; font-size: 1.04em; font-weight: 600; }
+.doc-index-list.level-3 > li { margin-left: 18px; font-size: 0.97em; font-weight: 500; }
+.doc-index-list.level-4 > li { margin-left: 32px; font-size: 0.93em; font-weight: 400; }
+
+.doc-index-sidebar a {
+  color: orange;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s, text-decoration 0.2s, background 0.2s;
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  outline: none;
+}
+.doc-index-sidebar a:hover,
+.doc-index-sidebar a.active {
+  color: #fff;
+  background: #ffb30033;
+  text-decoration: underline;
+}
+.doc-index-sidebar li + li {
+  margin-top: 4px;
+}
+
+/* Colapsável */
+.collapsible {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  transition: background 0.2s;
+  border-radius: 4px;
+  padding: 2px 0;
+}
+.collapsible:hover {
+  background: #ffb30022;
+}
+.collapsible svg {
+  margin-right: 2px;
+  transition: transform 0.2s;
+}
+.collapsible.collapsed svg {
+  transform: rotate(0deg);
+}
+.collapsible:not(.collapsed) svg {
+  transform: rotate(90deg);
+}
+
+/* Busca no índice */
+.doc-index-sidebar input[type="text"],
+.doc-index-sidebar .MuiInputBase-input {
+  background: transparent;
+  border: none;
+  color: #fff;
+  outline: none;
+  width: 100%;
+  padding: 6px 0;
+}
+.doc-index-sidebar .MuiInputBase-root {
+  background: #23232b;
+  border-radius: 6px;
+  padding-left: 8px;
+  margin-bottom: 8px;
+}
+
+/* Animação de expansão */
+.doc-index-list {
+  transition: max-height 0.2s cubic-bezier(0.4,0,0.2,1);
+  overflow: hidden;
+}
+
+/* Responsividade */
+@media (max-width: 900px) {
+  .doc-index-sidebar {
+    display: none;
+  }
+}
+
+/* Acessibilidade: foco */
+.doc-index-sidebar a:focus {
+  outline: 2px solid #ffb300;
+  outline-offset: 2px;
+} 
