@@ -493,20 +493,101 @@ async def export_search_results_api(data: dict = Body(...)):
         if not results:
             raise HTTPException(status_code=400, detail="Nenhum resultado para exportar")
         
-        # Criar DataFrame com os resultados
-        df = pd.DataFrame(results)
-        
-        # Adicionar metadados da busca
-        metadata = {
-            "Data_Exportacao": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-            "Tipo_Busca": search_type,
-            "Total_Resultados": len(results),
-            "Filtros_Aplicados": str(filters)
-        }
-        
-        # Adicionar metadados como primeira linha
-        metadata_df = pd.DataFrame([metadata])
-        df_with_metadata = pd.concat([metadata_df, df], ignore_index=True)
+        # Para busca GGL e GR, organizar por GGL/GR
+        if "GGL" in search_type or "GR" in search_type:
+            # Agrupar lojas por GGL e GR
+            ggl_groups = {}
+            gr_groups = {}
+            
+            for loja in results:
+                ggl = loja.get('NOME_GGL', '') or loja.get('ggl', '') or 'Sem GGL'
+                gr = loja.get('NOME_GR', '') or loja.get('gr', '') or 'Sem GR'
+                
+                if ggl not in ggl_groups:
+                    ggl_groups[ggl] = []
+                ggl_groups[ggl].append(loja)
+                
+                if gr not in gr_groups:
+                    gr_groups[gr] = []
+                gr_groups[gr].append(loja)
+            
+            # Criar CSV organizado
+            csv_lines = []
+            
+            # Cabeçalho com metadados
+            csv_lines.append("RELATÓRIO DE LOJAS POR GGL E GR")
+            csv_lines.append(f"Data de Exportação: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+            csv_lines.append(f"Tipo de Busca: {search_type}")
+            csv_lines.append(f"Total de Lojas: {len(results)}")
+            csv_lines.append(f"Filtros Aplicados: {str(filters)}")
+            csv_lines.append("")
+            
+            # Seção por GGL
+            csv_lines.append("=" * 80)
+            csv_lines.append("LOJAS ORGANIZADAS POR GGL (Gerente Geral de Loja)")
+            csv_lines.append("=" * 80)
+            csv_lines.append("")
+            
+            for ggl, lojas in sorted(ggl_groups.items()):
+                csv_lines.append(f"GGL: {ggl}")
+                csv_lines.append(f"Total de Lojas: {len(lojas)}")
+                csv_lines.append("-" * 60)
+                
+                # Cabeçalho das colunas
+                csv_lines.append("Código,Nome da Loja,Endereço,Cidade,UF,Status,Telefone,E-mail,Horário Seg-Sex,Horário Sábado,Horário Domingo")
+                
+                # Dados das lojas
+                for loja in sorted(lojas, key=lambda x: x.get('LOJAS', '') or x.get('nome', '')):
+                    csv_lines.append(f"\"{loja.get('CODIGO', '')}\",\"{loja.get('LOJAS', '') or loja.get('nome', '')}\",\"{loja.get('ENDEREÇO', '') or loja.get('endereco', '')}\",\"{loja.get('CIDADE', '') or loja.get('cidade', '')}\",\"{loja.get('UF', '') or loja.get('uf', '')}\",\"{loja.get('Status_Loja', '') or loja.get('status', '')}\",\"{loja.get('TELEFONE1', '')}\",\"{loja.get('E_MAIL', '')}\",\"{loja.get('2ª_a_6ª', '')}\",\"{loja.get('SAB', '')}\",\"{loja.get('DOM', '')}\"")
+                
+                csv_lines.append("")
+            
+            # Seção por GR
+            csv_lines.append("=" * 80)
+            csv_lines.append("LOJAS ORGANIZADAS POR GR (Gerente Regional)")
+            csv_lines.append("=" * 80)
+            csv_lines.append("")
+            
+            for gr, lojas in sorted(gr_groups.items()):
+                csv_lines.append(f"GR: {gr}")
+                csv_lines.append(f"Total de Lojas: {len(lojas)}")
+                csv_lines.append("-" * 60)
+                
+                # Cabeçalho das colunas
+                csv_lines.append("Código,Nome da Loja,Endereço,Cidade,UF,Status,Telefone,E-mail,Horário Seg-Sex,Horário Sábado,Horário Domingo")
+                
+                # Dados das lojas
+                for loja in sorted(lojas, key=lambda x: x.get('LOJAS', '') or x.get('nome', '')):
+                    csv_lines.append(f"\"{loja.get('CODIGO', '')}\",\"{loja.get('LOJAS', '') or loja.get('nome', '')}\",\"{loja.get('ENDEREÇO', '') or loja.get('endereco', '')}\",\"{loja.get('CIDADE', '') or loja.get('cidade', '')}\",\"{loja.get('UF', '') or loja.get('uf', '')}\",\"{loja.get('Status_Loja', '') or loja.get('status', '')}\",\"{loja.get('TELEFONE1', '')}\",\"{loja.get('E_MAIL', '')}\",\"{loja.get('2ª_a_6ª', '')}\",\"{loja.get('SAB', '')}\",\"{loja.get('DOM', '')}\"")
+                
+                csv_lines.append("")
+            
+            # Resumo final
+            csv_lines.append("=" * 80)
+            csv_lines.append("RESUMO")
+            csv_lines.append("=" * 80)
+            csv_lines.append(f"Total de GGLs: {len(ggl_groups)}")
+            csv_lines.append(f"Total de GRs: {len(gr_groups)}")
+            csv_lines.append(f"Total de Lojas: {len(results)}")
+            
+            csv_content = '\n'.join(csv_lines)
+            
+        else:
+            # Para outros tipos de busca, usar formato padrão
+            df = pd.DataFrame(results)
+            
+            # Adicionar metadados da busca
+            metadata = {
+                "Data_Exportacao": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "Tipo_Busca": search_type,
+                "Total_Resultados": len(results),
+                "Filtros_Aplicados": str(filters)
+            }
+            
+            # Adicionar metadados como primeira linha
+            metadata_df = pd.DataFrame([metadata])
+            df_with_metadata = pd.concat([metadata_df, df], ignore_index=True)
+            csv_content = df_with_metadata.to_csv(index=False, encoding='utf-8-sig')
         
         # Gerar nome do arquivo
         timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
@@ -516,8 +597,9 @@ async def export_search_results_api(data: dict = Body(...)):
         # Criar diretório temp se não existir
         os.makedirs("temp", exist_ok=True)
         
-        # Exportar para CSV
-        df_with_metadata.to_csv(filepath, index=False, encoding='utf-8-sig')
+        # Salvar arquivo
+        with open(filepath, 'w', encoding='utf-8-sig') as f:
+            f.write(csv_content)
         
         return FileResponse(
             filepath, 
