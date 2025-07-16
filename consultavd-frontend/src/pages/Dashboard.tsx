@@ -494,14 +494,16 @@ const Dashboard: React.FC = () => {
                 <CircularProgress 
                   variant="determinate" 
                   value={Math.round((Number(count) / totalLojas) * 100)} 
-                  size={{ xs: 60, md: 70 }} 
+                  size={70} 
                   thickness={6} 
                   sx={{ 
                     color: COLORS_UF[idx % COLORS_UF.length], 
                     bgcolor: COLORS_UF[idx % COLORS_UF.length] + '22', 
                     borderRadius: '50%', 
                     boxShadow: 3,
-                    transition: 'transform 0.3s ease'
+                    transition: 'transform 0.3s ease',
+                    width: { xs: 60, md: 70 },
+                    height: { xs: 60, md: 70 }
                   }} 
                 />
                 <Typography 
