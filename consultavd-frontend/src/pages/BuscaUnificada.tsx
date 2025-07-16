@@ -664,7 +664,7 @@ const BuscaUnificada: React.FC = () => {
               <CardContent>
                 <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <StoreIcon color="primary" />
-                  Busca Loja > Operadora > Circuito
+                  Busca Loja {'>'} Operadora {'>'} Circuito
                 </Typography>
                 
                 {/* Busca de Loja */}
@@ -900,7 +900,7 @@ const BuscaUnificada: React.FC = () => {
                   };
 
                   const handleEmail = () => {
-                    const email = loja.email || (loja as any)['EMAIL'] || '';
+                    const email = (loja as any)['EMAIL'] || '';
                     if (email) {
                       window.open(`mailto:${email}`, '_blank');
                     }
@@ -937,9 +937,9 @@ const BuscaUnificada: React.FC = () => {
                           />
                         </Box>
                       </AccordionSummary>
-                      <AccordionDetails>
-                        <LojaDetalheCard loja={loja} />
-                      </AccordionDetails>
+                                             <AccordionDetails>
+                         <LojaDetalheCard data={loja} />
+                       </AccordionDetails>
                     </Accordion>
                   );
                 })}
