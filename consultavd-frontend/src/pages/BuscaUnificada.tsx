@@ -353,7 +353,7 @@ const BuscaUnificada: React.FC = () => {
     const dataAtual = new Date().toLocaleDateString('pt-BR');
     const horaAtual = new Date().toLocaleTimeString('pt-BR');
     
-    return `**CARIMBO - CONSULTA VD**
+    let carimbo = `**CARIMBO - CONSULTA VD**
 📅 Data: ${dataAtual} às ${horaAtual}
 
 🏢 **INFORMAÇÕES DA LOJA**
@@ -367,16 +367,31 @@ ${endereco}
 
 📞 **CONTATOS**
 • Telefone: ${telefone}
-• Email: ${email}
+• Email: ${email}`;
+
+    // Adicionar informações específicas da aba Busca Loja > Operadora > Circuito
+    if (tab === 4 && selectedLoja && selectedOperadora && selectedCircuito) {
+      carimbo += `
+
+🔗 **OPERADORA**
+${selectedOperadora}
+
+⚡ **CIRCUITO**
+${selectedCircuito}`;
+    }
+
+    carimbo += `
 
 🔍 **BUSCA REALIZADA**
-Tipo: Busca Loja > Operadora > Circuito
+Tipo: ${tabLabels[tab]?.label || 'Busca'}
 Data/Hora: ${dataAtual} ${horaAtual}
 
 ---
 Sistema: COMMAND CENTER - Consulta VD
 Gerado automaticamente`;
-  }, []);
+
+    return carimbo;
+  }, [tab, selectedLoja, selectedOperadora, selectedCircuito]);
 
   return (
     <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
