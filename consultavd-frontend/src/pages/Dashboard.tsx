@@ -215,9 +215,17 @@ const Dashboard: React.FC = () => {
 
   // Substituir valores fixos por dados reais do backend
   const totalLojas = stats?.total_lojas || 1;
-  const ufs = stats?.lojas_por_uf ? Object.entries(stats.lojas_por_uf)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 5) : [];
+  const ufsRaw = stats?.lojas_por_uf ? Object.entries(stats.lojas_por_uf)
+    .sort(([, a], [, b]) => b - a) : [];
+  
+  // Pegar top 4 UFs e agrupar o resto como "Outros"
+  const topUfs = ufsRaw.slice(0, 4);
+  const outrosCount = ufsRaw.slice(4).reduce((acc, [, count]) => acc + count, 0);
+  const ufs = [
+    ...topUfs,
+    ...(outrosCount > 0 ? [['Outros', outrosCount]] : [])
+  ];
+  
   const COLORS_UF = ['#2196f3', '#43a047', '#fbc02d', '#e53935', '#8e24aa'];
 
   // Obter informações dinâmicas do sistema
