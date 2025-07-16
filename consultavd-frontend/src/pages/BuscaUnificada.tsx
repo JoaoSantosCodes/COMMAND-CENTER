@@ -40,7 +40,11 @@ import {
   Skeleton,
   Fade,
   Zoom,
-  Slide
+  Slide,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions
 } from '@mui/material';
 import PeopleCard from '../components/PeopleCard';
 import PeopleContactCard from '../components/PeopleContactCard';
@@ -64,6 +68,8 @@ import StoreIcon from '@mui/icons-material/Store';
 import WifiIcon from '@mui/icons-material/Wifi';
 import ContactSupportIcon from '@mui/icons-material/ContactSupport';
 import CheckIcon from '@mui/icons-material/Check';
+import WarningIcon from '@mui/icons-material/Warning';
+import CloseIcon from '@mui/icons-material/Close';
 
 // Hook para debounce
 const useDebounce = (value: string, delay: number) => {
@@ -320,6 +326,8 @@ const BuscaUnificada: React.FC = () => {
 
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const [copied, setCopied] = useState<string>('');
+  const [showCarimboModal, setShowCarimboModal] = useState(false);
+  const [selectedLojaForCarimbo, setSelectedLojaForCarimbo] = useState<any>(null);
 
   const clearSearch = useCallback(() => {
     setPeopleCode('');
@@ -1096,21 +1104,19 @@ Gerado automaticamente`;
                                 size="small" 
                                 onClick={(e) => {
                                   e.stopPropagation();
-                                  const carimbo = generateCarimbo(loja);
-                                  navigator.clipboard.writeText(carimbo);
-                                  setCopied(`carimbo-${idx}`);
-                                  setTimeout(() => setCopied(''), 2000);
+                                  setSelectedLojaForCarimbo(loja);
+                                  setShowCarimboModal(true);
                                 }}
                                 sx={{ 
-                                  bgcolor: copied === `carimbo-${idx}` ? 'success.main' : 'transparent',
-                                  color: copied === `carimbo-${idx}` ? 'white' : 'primary.main',
+                                  bgcolor: 'transparent',
+                                  color: 'primary.main',
                                   '&:hover': {
                                     bgcolor: 'primary.main',
                                     color: 'white'
                                   }
                                 }}
                               >
-                                {copied === `carimbo-${idx}` ? <CheckIcon /> : <ContentCopyIcon />}
+                                <ContentCopyIcon />
                               </IconButton>
                             </Tooltip>
                           </Box>
@@ -1127,6 +1133,155 @@ Gerado automaticamente`;
           </Box>
         </Zoom>
       )}
+
+      {/* Modal do Carimbo */}
+      <Dialog 
+        open={showCarimboModal} 
+        onClose={() => setShowCarimboModal(false)}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)',
+            border: '1px solid #ff9800'
+          }
+        }}
+      >
+        <DialogTitle sx={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          color: 'white',
+          borderBottom: '1px solid #404040'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <WarningIcon sx={{ color: '#ff9800', fontSize: 28 }} />
+            <Typography variant="h6" fontWeight="bold">
+              Carimbo Gerado
+            </Typography>
+          </Box>
+          <IconButton 
+            onClick={() => setShowCarimboModal(false)}
+            sx={{ color: 'white' }}
+          >
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        
+        <DialogContent sx={{ p: 3 }}>
+          {selectedLojaForCarimbo && (
+            <Box sx={{ color: 'white' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                <WarningIcon sx={{ color: '#ff9800' }} />
+                <Typography variant="h6" fontWeight="bold">
+                  Carimbo - Consulta VD:
+                </Typography>
+              </Box>
+              
+              <Box sx={{ 
+                bgcolor: 'rgba(255,255,255,0.05)', 
+                p: 2, 
+                borderRadius: 2,
+                border: '1px solid #404040'
+              }}>
+                <Typography variant="body1" sx={{ mb: 1 }}>
+                  📅 Data: {new Date().toLocaleDateString('pt-BR')} às {new Date().toLocaleTimeString('pt-BR')}
+                </Typography>
+                
+                <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
+                  🏢 INFORMAÇÕES DA LOJA
+                </Typography>
+                <Typography variant="body1" sx={{ ml: 2, mb: 0.5 }}>
+                  • Nome: {selectedLojaForCarimbo.nome || (selectedLojaForCarimbo as any)['NOME'] || (selectedLojaForCarimbo as any)['LOJAS'] || 'N/A'}
+                </Typography>
+                <Typography variant="body1" sx={{ ml: 2, mb: 0.5 }}>
+                  • Código: {selectedLojaForCarimbo.id || (selectedLojaForCarimbo as any)['codigo'] || (selectedLojaForCarimbo as any)['CODIGO'] || 'N/A'}
+                </Typography>
+                <Typography variant="body1" sx={{ ml: 2, mb: 0.5 }}>
+                  • Cidade: {(selectedLojaForCarimbo.cidade || (selectedLojaForCarimbo as any)['CIDADE'] || 'N/A')} - {(selectedLojaForCarimbo.uf || (selectedLojaForCarimbo as any)['UF'] || 'N/A')}
+                </Typography>
+                <Typography variant="body1" sx={{ ml: 2, mb: 1 }}>
+                  • Status: {selectedLojaForCarimbo.status || (selectedLojaForCarimbo as any)['STATUS'] || (selectedLojaForCarimbo as any)['Status_Loja'] || 'N/A'}
+                </Typography>
+                
+                <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
+                  📍 ENDEREÇO
+                </Typography>
+                <Typography variant="body1" sx={{ ml: 2, mb: 1 }}>
+                  {selectedLojaForCarimbo.endereco || (selectedLojaForCarimbo as any)['ENDEREÇO'] || (selectedLojaForCarimbo as any)['ENDERECO'] || 'N/A'}
+                </Typography>
+                
+                {tab === 4 && selectedLoja && selectedOperadora && selectedCircuito && (
+                  <>
+                    <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
+                      🔗 OPERADORA
+                    </Typography>
+                    <Typography variant="body1" sx={{ ml: 2, mb: 1 }}>
+                      {selectedOperadora}
+                    </Typography>
+                    
+                    <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
+                      ⚡ CIRCUITO
+                    </Typography>
+                    <Typography variant="body1" sx={{ ml: 2, mb: 1 }}>
+                      {selectedCircuito}
+                    </Typography>
+                  </>
+                )}
+                
+                <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
+                  🔍 BUSCA REALIZADA
+                </Typography>
+                <Typography variant="body1" sx={{ ml: 2, mb: 0.5 }}>
+                  Tipo: {tabLabels[tab]?.label || 'Busca'}
+                </Typography>
+                <Typography variant="body1" sx={{ ml: 2, mb: 1 }}>
+                  Data/Hora: {new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')}
+                </Typography>
+                
+                <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #404040' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Sistema: COMMAND CENTER - Consulta VD
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Gerado automaticamente
+                  </Typography>
+                </Box>
+              </Box>
+            </Box>
+          )}
+        </DialogContent>
+        
+        <DialogActions sx={{ p: 3, borderTop: '1px solid #404040' }}>
+          <Button 
+            variant="contained" 
+            color="warning"
+            startIcon={<ContentCopyIcon />}
+            onClick={() => {
+              if (selectedLojaForCarimbo) {
+                const carimbo = generateCarimbo(selectedLojaForCarimbo);
+                navigator.clipboard.writeText(carimbo);
+                setCopied('modal');
+                setTimeout(() => setCopied(''), 2000);
+              }
+            }}
+            sx={{ 
+              fontWeight: 'bold',
+              minWidth: 120
+            }}
+          >
+            {copied === 'modal' ? 'COPIADO!' : 'COPIAR'}
+          </Button>
+          <Button 
+            variant="outlined" 
+            onClick={() => setShowCarimboModal(false)}
+            sx={{ color: 'white', borderColor: 'white' }}
+          >
+            FECHAR
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* FAB para ações rápidas */}
       <Fab
