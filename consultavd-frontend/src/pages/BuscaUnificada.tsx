@@ -349,6 +349,7 @@ const BuscaUnificada: React.FC = () => {
     const endereco = loja.endereco || (loja as any)['ENDEREÇO'] || (loja as any)['ENDERECO'] || 'N/A';
     const email = (loja as any)['EMAIL'] || 'N/A';
     const telefone = (loja as any)['TELEFONE'] || (loja as any)['TELEFONE 1'] || 'N/A';
+    const funcionamento = (loja as any)['FUNCIONAMENTO'] || (loja as any)['HORARIO'] || (loja as any)['HORÁRIO'] || (loja as any)['HORARIO_FUNCIONAMENTO'] || 'N/A';
     
     const dataAtual = new Date().toLocaleDateString('pt-BR');
     const horaAtual = new Date().toLocaleTimeString('pt-BR');
@@ -365,9 +366,8 @@ const BuscaUnificada: React.FC = () => {
 📍 **ENDEREÇO**
 ${endereco}
 
-📞 **CONTATOS**
-• Telefone: ${telefone}
-• Email: ${email}`;
+🕒 **HORÁRIO DE FUNCIONAMENTO**
+${funcionamento}`;
 
     // Adicionar informações específicas da aba Busca Loja > Operadora > Circuito
     if (tab === 4 && selectedLoja && selectedOperadora && selectedCircuito) {
