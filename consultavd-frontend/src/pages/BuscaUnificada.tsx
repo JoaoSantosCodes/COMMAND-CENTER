@@ -50,8 +50,6 @@ import BusinessIcon from '@mui/icons-material/Business';
 import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SearchIcon from '@mui/icons-material/Search';
 import SortIcon from '@mui/icons-material/Sort';
-import PieChartOutlineIcon from '@mui/icons-material/PieChartOutline';
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import RoomIcon from '@mui/icons-material/Room';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
@@ -189,9 +187,7 @@ const BuscaUnificada: React.FC = () => {
     acc[cidade] = (acc[cidade] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
-  const cidadesMaisFrequentes = Object.entries(cidadesCount).sort((a, b) => b[1] - a[1]).slice(0, 3);
-  const statusColors = { 'ATIVA': '#43a047', 'INATIVA': '#e53935', 'PENDENTE': '#fbc02d', '-': '#757575' };
-  const statusData = Object.entries(statusCount).map(([status, value]) => ({ name: status, value, color: statusColors[status as keyof typeof statusColors] || '#757575' }));
+
 
   const handleSearch = useCallback(async () => {
     setLoading(true);
@@ -821,60 +817,7 @@ const BuscaUnificada: React.FC = () => {
       {result && (
         <Zoom in timeout={500}>
           <Box>
-            {/* Estatísticas dos resultados */}
-            {totalLojas > 0 && (
-              <Grid container spacing={3} sx={{ mb: 3 }}>
-                <Grid item xs={12} md={6}>
-                  <Card sx={{ borderRadius: 3 }}>
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <PieChartOutlineIcon color="primary" />
-                        Distribuição por Status
-                      </Typography>
-                      <ResponsiveContainer width="100%" height={200}>
-                        <PieChart>
-                          <Pie
-                            data={statusData}
-                            cx="50%"
-                            cy="50%"
-                            labelLine={false}
-                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                            outerRadius={60}
-                            fill="#8884d8"
-                            dataKey="value"
-                          >
-                            {statusData.map((entry, index) => (
-                              <Cell key={`cell-${index}`} fill={entry.color} />
-                            ))}
-                          </Pie>
-                          <RechartsTooltip />
-                        </PieChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-                </Grid>
-                
-                <Grid item xs={12} md={6}>
-                  <Card sx={{ borderRadius: 3 }}>
-                    <CardContent>
-                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <TrendingUpIcon color="primary" />
-                        Top Cidades
-                      </Typography>
-                      <ResponsiveContainer width="100%" height={200}>
-                        <BarChart data={cidadesMaisFrequentes}>
-                          <CartesianGrid strokeDasharray="3 3" />
-                          <XAxis dataKey="0" />
-                          <YAxis />
-                          <RechartsTooltip />
-                          <Bar dataKey="1" fill="#8884d8" radius={[4, 4, 0, 0]} />
-                        </BarChart>
-                      </ResponsiveContainer>
-                    </CardContent>
-                  </Card>
-                </Grid>
-              </Grid>
-            )}
+
 
             {/* Lista de resultados */}
             <Card sx={{ borderRadius: 3 }}>
