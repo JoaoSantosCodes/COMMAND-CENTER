@@ -658,19 +658,19 @@ const BuscaUnificada: React.FC = () => {
           {tab === 4 && (
             <Box>
               {/* Header da seção */}
-              <Card sx={{ mb: 3, borderRadius: 3, background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
+              <Card sx={{ mb: 3, borderRadius: 3, background: 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)', border: '1px solid #404040' }}>
                 <CardContent>
                   <Typography variant="h5" gutterBottom sx={{ 
                     display: 'flex', 
                     alignItems: 'center', 
                     gap: 2,
                     fontWeight: 'bold',
-                    color: '#2c3e50'
+                    color: '#ffffff'
                   }}>
                     <StoreIcon sx={{ fontSize: 32, color: '#e74c3c' }} />
                     Busca Loja {'>'} Operadora {'>'} Circuito
                   </Typography>
-                  <Typography variant="body1" color="textSecondary" sx={{ ml: 6 }}>
+                  <Typography variant="body1" color="text.secondary" sx={{ ml: 6 }}>
                     Selecione uma loja, operadora e circuito para buscar informações detalhadas
                   </Typography>
                 </CardContent>
