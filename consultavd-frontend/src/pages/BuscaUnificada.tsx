@@ -347,9 +347,14 @@ const BuscaUnificada: React.FC = () => {
     const uf = loja.uf || (loja as any)['UF'] || 'N/A';
     const status = loja.status || (loja as any)['STATUS'] || (loja as any)['Status_Loja'] || 'N/A';
     const endereco = loja.endereco || (loja as any)['ENDEREÇO'] || (loja as any)['ENDERECO'] || 'N/A';
-    const email = (loja as any)['EMAIL'] || 'N/A';
-    const telefone = (loja as any)['TELEFONE'] || (loja as any)['TELEFONE 1'] || 'N/A';
-    const funcionamento = (loja as any)['FUNCIONAMENTO'] || (loja as any)['HORARIO'] || (loja as any)['HORÁRIO'] || (loja as any)['HORARIO_FUNCIONAMENTO'] || 'N/A';
+    const email = (loja as any)['EMAIL'] || (loja as any)['E_MAIL'] || 'N/A';
+    const telefone = (loja as any)['TELEFONE'] || (loja as any)['TELEFONE 1'] || (loja as any)['TELEFONE1'] || 'N/A';
+    
+    // Campos de horário de funcionamento
+    const horarioSegSex = (loja as any)['2ª_a_6ª'] || (loja as any)['2ª a 6ª'] || 'N/A';
+    const horarioSabado = (loja as any)['SAB'] || 'N/A';
+    const horarioDomingo = (loja as any)['DOM'] || 'N/A';
+    const funcionario = (loja as any)['FUNC.'] || 'N/A';
     
     const dataAtual = new Date().toLocaleDateString('pt-BR');
     const horaAtual = new Date().toLocaleTimeString('pt-BR');
@@ -367,7 +372,10 @@ const BuscaUnificada: React.FC = () => {
 ${endereco}
 
 🕒 **HORÁRIO DE FUNCIONAMENTO**
-${funcionamento}`;
+• Segunda a Sexta: ${horarioSegSex}
+• Sábado: ${horarioSabado}
+• Domingo: ${horarioDomingo}
+• Funcionário: ${funcionario}`;
 
     // Adicionar informações específicas da aba Busca Loja > Operadora > Circuito
     if (tab === 4 && selectedLoja && selectedOperadora && selectedCircuito) {
@@ -1225,6 +1233,22 @@ Gerado automaticamente`;
                 </Typography>
                 <Typography variant="body1" sx={{ ml: 2, mb: 1 }}>
                   {selectedLojaForCarimbo.endereco || (selectedLojaForCarimbo as any)['ENDEREÇO'] || (selectedLojaForCarimbo as any)['ENDERECO'] || 'N/A'}
+                </Typography>
+                
+                <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
+                  🕒 HORÁRIO DE FUNCIONAMENTO
+                </Typography>
+                <Typography variant="body1" sx={{ ml: 2, mb: 0.5 }}>
+                  • Segunda a Sexta: {(selectedLojaForCarimbo as any)['2ª_a_6ª'] || (selectedLojaForCarimbo as any)['2ª a 6ª'] || 'N/A'}
+                </Typography>
+                <Typography variant="body1" sx={{ ml: 2, mb: 0.5 }}>
+                  • Sábado: {(selectedLojaForCarimbo as any)['SAB'] || 'N/A'}
+                </Typography>
+                <Typography variant="body1" sx={{ ml: 2, mb: 0.5 }}>
+                  • Domingo: {(selectedLojaForCarimbo as any)['DOM'] || 'N/A'}
+                </Typography>
+                <Typography variant="body1" sx={{ ml: 2, mb: 1 }}>
+                  • Funcionário: {(selectedLojaForCarimbo as any)['FUNC.'] || 'N/A'}
                 </Typography>
                 
                 {tab === 4 && selectedLoja && selectedOperadora && selectedCircuito && (

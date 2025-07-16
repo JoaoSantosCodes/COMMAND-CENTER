@@ -791,6 +791,10 @@ async def search_loja_operadora_circuito(
                     l.NOME_GGL as nome_ggl,
                     l.NOME_GR as nome_gr,
                     l.VD_NOVO as vd_novo,
+                    l."2ª_a_6ª" as horario_seg_sex,
+                    l.SAB as horario_sabado,
+                    l.DOM as horario_domingo,
+                    l."FUNC." as funcionario,
                     i.Operadora,
                     i.Circuito_Designação as designacao,
                     i.Novo_Circuito_Designação as novo_designacao,
@@ -822,7 +826,11 @@ async def search_loja_operadora_circuito(
                     "NOME_GGL": row[13],
                     "NOME_GR": row[14],
                     "VD NOVO": row[15],
-                    "STATUS": row[12]
+                    "STATUS": row[12],
+                    "2ª_a_6ª": row[17],
+                    "SAB": row[18],
+                    "DOM": row[19],
+                    "FUNC.": row[20]
                 }
                 results.append(loja)
             result = {
