@@ -1,0 +1,20 @@
+<svg width="200" height="80" viewBox="0 0 200 80" xmlns="http://www.w3.org/2000/svg">
+  <!-- Fundo do logo -->
+  <rect width="200" height="80" rx="12" fill="#1f2937"/>
+  
+  <!-- Ícone de busca/database -->
+  <circle cx="25" cy="40" r="12" fill="none" stroke="#6366f1" stroke-width="3"/>
+  <line x1="32" y1="47" x2="38" y2="53" stroke="#6366f1" stroke-width="3" stroke-linecap="round"/>
+  
+  <!-- Linha de dados -->
+  <rect x="50" y="25" width="4" height="30" fill="#6366f1" rx="2"/>
+  <rect x="58" y="30" width="4" height="20" fill="#6366f1" rx="2"/>
+  <rect x="66" y="35" width="4" height="10" fill="#6366f1" rx="2"/>
+  
+  <!-- Texto ConsultaVD -->
+  <text x="85" y="35" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#f9fafb">Consulta</text>
+  <text x="85" y="55" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#6366f1">VD</text>
+  
+  <!-- Linha decorativa -->
+  <line x1="85" y1="60" x2="160" y2="60" stroke="#6366f1" stroke-width="2" stroke-linecap="round"/>
+</svg> 
