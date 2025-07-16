@@ -44,7 +44,9 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Pagination,
+  TablePagination
 } from '@mui/material';
 import PeopleCard from '../components/PeopleCard';
 import PeopleContactCard from '../components/PeopleContactCard';
@@ -129,6 +131,12 @@ const BuscaUnificada: React.FC = () => {
 
   // Campos para GGL e GR
   const [gglGrSearch, setGglGrSearch] = useState('');
+  const [gglGrPage, setGglGrPage] = useState(1);
+  const [gglGrPageSize, setGglGrPageSize] = useState(20);
+  const [gglGrStatusFilter, setGglGrStatusFilter] = useState('');
+  const [gglGrCidadeFilter, setGglGrCidadeFilter] = useState('');
+  const [gglGrSortField, setGglGrSortField] = useState<'nome' | 'codigo' | 'cidade'>('nome');
+  const [gglGrSortAsc, setGglGrSortAsc] = useState(true);
 
   // Debounce para busca de lojas
   const debouncedLojaSearch = useDebounce(lojaSearch, 300);
@@ -194,6 +202,53 @@ const BuscaUnificada: React.FC = () => {
     acc[cidade] = (acc[cidade] || 0) + 1;
     return acc;
   }, {} as Record<string, number>);
+
+  // Filtros e paginação específicos para GGL e GR
+  const gglGrFilteredLojas = useMemo(() => {
+    if (!result?.lojas) return [];
+    let arr = result.lojas;
+    
+    // Filtro por status
+    if (gglGrStatusFilter) {
+      arr = arr.filter(loja => {
+        const status = loja.status || (loja as any)['STATUS'] || (loja as any)['Status_Loja'] || '';
+        return status === gglGrStatusFilter;
+      });
+    }
+    
+    // Filtro por cidade
+    if (gglGrCidadeFilter) {
+      arr = arr.filter(loja => {
+        const cidade = (loja.cidade || (loja as any)['CIDADE'] || '').toLowerCase();
+        return cidade.includes(gglGrCidadeFilter.toLowerCase());
+      });
+    }
+    
+    return arr;
+  }, [result?.lojas, gglGrStatusFilter, gglGrCidadeFilter]);
+
+  const gglGrSortedLojas = useMemo(() => {
+    return [...gglGrFilteredLojas].sort((a, b) => {
+      const get = (loja: any) => {
+        if (gglGrSortField === 'nome') return (loja.nome || loja['NOME'] || loja['LOJAS'] || '').toLowerCase();
+        if (gglGrSortField === 'codigo') return String(loja.id || loja['codigo'] || loja['CODIGO'] || '');
+        if (gglGrSortField === 'cidade') return (loja.cidade || loja['CIDADE'] || '').toLowerCase();
+        return '';
+      };
+      const va = get(a), vb = get(b);
+      if (va < vb) return gglGrSortAsc ? -1 : 1;
+      if (va > vb) return gglGrSortAsc ? 1 : -1;
+      return 0;
+    });
+  }, [gglGrFilteredLojas, gglGrSortField, gglGrSortAsc]);
+
+  const gglGrPaginatedLojas = useMemo(() => {
+    const startIndex = (gglGrPage - 1) * gglGrPageSize;
+    const endIndex = startIndex + gglGrPageSize;
+    return gglGrSortedLojas.slice(startIndex, endIndex);
+  }, [gglGrSortedLojas, gglGrPage, gglGrPageSize]);
+
+  const gglGrTotalPages = Math.ceil(gglGrSortedLojas.length / gglGrPageSize);
 
 
   const handleSearch = useCallback(async () => {
@@ -374,8 +429,7 @@ ${endereco}
 🕒 **HORÁRIO DE FUNCIONAMENTO**
 • Segunda a Sexta: ${horarioSegSex}
 • Sábado: ${horarioSabado}
-• Domingo: ${horarioDomingo}
-• Funcionário: ${funcionario}`;
+• Domingo: ${horarioDomingo}`;
 
     // Adicionar informações específicas da aba Busca Loja > Operadora > Circuito
     if (tab === 4 && selectedLoja && selectedOperadora && selectedCircuito) {
@@ -388,16 +442,7 @@ ${selectedOperadora}
 ${selectedCircuito}`;
     }
 
-    carimbo += `
-
-🔍 **BUSCA REALIZADA**
-Tipo: ${tabLabels[tab]?.label || 'Busca'}
-Data/Hora: ${dataAtual} ${horaAtual}
-
----
-Sistema: COMMAND CENTER - Consulta VD
-Gerado automaticamente`;
-
+    // Removido bloco de busca realizada e sistema
     return carimbo;
   }, [tab, selectedLoja, selectedOperadora, selectedCircuito]);
 
@@ -1011,41 +1056,131 @@ Gerado automaticamente`;
           )}
           
           {tab === 5 && (
-            <Card sx={{ mb: 3, borderRadius: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <ContactSupportIcon color="primary" />
-                  Busca por GGL e GR
-                </Typography>
-                <Box display="flex" gap={2} alignItems="flex-end">
-                  <TextField
-                    label="GGL ou GR"
-                    value={gglGrSearch}
-                    onChange={e => setGglGrSearch(e.target.value)}
-                    onKeyPress={handleKeyPress}
-                    fullWidth
-                    placeholder="Digite o nome do GGL ou GR"
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <ContactSupportIcon color="action" />
-                        </InputAdornment>
-                      ),
-                    }}
-                  />
-                  <Button 
-                    variant="contained" 
-                    color="primary" 
-                    onClick={handleSearch} 
-                    disabled={loading || !gglGrSearch}
-                    startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
-                    sx={{ minWidth: 120 }}
-                  >
-                    {loading ? 'Buscando...' : 'Buscar'}
-                  </Button>
-                </Box>
-              </CardContent>
-            </Card>
+            <Box>
+              {/* Header da seção */}
+              <Card sx={{ 
+                mb: 3, 
+                borderRadius: 3, 
+                background: (theme) => theme.palette.mode === 'dark' 
+                  ? 'linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%)'
+                  : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
+                border: (theme) => theme.palette.mode === 'dark' 
+                  ? '1px solid #404040'
+                  : '1px solid #dee2e6'
+              }}>
+                <CardContent>
+                  <Typography variant="h5" gutterBottom sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    fontWeight: 'bold',
+                    color: 'text.primary'
+                  }}>
+                    <ContactSupportIcon sx={{ fontSize: 32, color: '#607d8b' }} />
+                    Busca por GGL e GR
+                  </Typography>
+                  <Typography variant="body1" color="text.secondary" sx={{ ml: 6 }}>
+                    Busque lojas por GGL (Gerente Geral de Loja) ou GR (Gerente Regional)
+                  </Typography>
+                </CardContent>
+              </Card>
+
+              {/* Campo de busca */}
+              <Card sx={{ mb: 3, borderRadius: 3 }}>
+                <CardContent>
+                  <Box display="flex" gap={2} alignItems="flex-end">
+                    <TextField
+                      label="GGL ou GR"
+                      value={gglGrSearch}
+                      onChange={e => setGglGrSearch(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      fullWidth
+                      placeholder="Digite o nome do GGL ou GR"
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position="start">
+                            <ContactSupportIcon color="action" />
+                          </InputAdornment>
+                        ),
+                      }}
+                    />
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      onClick={handleSearch} 
+                      disabled={loading || !gglGrSearch}
+                      startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
+                      sx={{ minWidth: 120 }}
+                    >
+                      {loading ? 'Buscando...' : 'Buscar'}
+                    </Button>
+                  </Box>
+                </CardContent>
+              </Card>
+
+              {/* Filtros para GGL e GR */}
+              {result && tab === 5 && (
+                <Card sx={{ mb: 3, borderRadius: 3 }}>
+                  <CardContent>
+                    <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <FilterListIcon color="primary" />
+                      Filtros e Ordenação
+                    </Typography>
+                    <Grid container spacing={2} alignItems="center">
+                      <Grid item xs={12} sm={6} md={3}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel>Status</InputLabel>
+                          <Select
+                            value={gglGrStatusFilter}
+                            onChange={(e) => setGglGrStatusFilter(e.target.value)}
+                            label="Status"
+                          >
+                            <MenuItem value="">Todos</MenuItem>
+                            <MenuItem value="ATIVA">Ativa</MenuItem>
+                            <MenuItem value="INATIVA">Inativa</MenuItem>
+                            <MenuItem value="PENDENTE">Pendente</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <TextField
+                          label="Cidade"
+                          value={gglGrCidadeFilter}
+                          onChange={(e) => setGglGrCidadeFilter(e.target.value)}
+                          size="small"
+                          fullWidth
+                          placeholder="Filtrar por cidade..."
+                        />
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <FormControl fullWidth size="small">
+                          <InputLabel>Ordenar por</InputLabel>
+                          <Select
+                            value={gglGrSortField}
+                            onChange={(e) => setGglGrSortField(e.target.value as any)}
+                            label="Ordenar por"
+                          >
+                            <MenuItem value="nome">Nome</MenuItem>
+                            <MenuItem value="codigo">Código</MenuItem>
+                            <MenuItem value="cidade">Cidade</MenuItem>
+                          </Select>
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={6} md={3}>
+                        <Button
+                          variant="outlined"
+                          onClick={() => setGglGrSortAsc(!gglGrSortAsc)}
+                          startIcon={<SortIcon />}
+                          fullWidth
+                        >
+                          {gglGrSortAsc ? 'A-Z' : 'Z-A'}
+                        </Button>
+                      </Grid>
+                    </Grid>
+                  </CardContent>
+                </Card>
+              )}
+            </Box>
           )}
         </Box>
       </Fade>
@@ -1066,10 +1201,10 @@ Gerado automaticamente`;
             <Card sx={{ borderRadius: 3 }}>
               <CardContent>
                 <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  📊 Resultados ({totalLojas} encontrados)
+                  📊 Resultados ({tab === 5 ? gglGrSortedLojas.length : totalLojas} encontrados)
                 </Typography>
                 
-                {filteredAndSortedLojas.map((loja, idx) => {
+                {(tab === 5 ? gglGrPaginatedLojas : filteredAndSortedLojas).map((loja, idx) => {
                   const handleCopy = (text: string, type: string) => {
                     navigator.clipboard.writeText(text);
                     setCopied(`${type}-${idx}`);
@@ -1153,6 +1288,49 @@ Gerado automaticamente`;
                 })}
               </CardContent>
             </Card>
+
+            {/* Paginação para GGL e GR */}
+            {tab === 5 && result && gglGrTotalPages > 1 && (
+              <Card sx={{ mt: 3, borderRadius: 3 }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+                    <Typography variant="body2" color="textSecondary">
+                      Página {gglGrPage} de {gglGrTotalPages} • 
+                      Mostrando {((gglGrPage - 1) * gglGrPageSize) + 1} a {Math.min(gglGrPage * gglGrPageSize, gglGrSortedLojas.length)} de {gglGrSortedLojas.length} resultados
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <FormControl size="small" sx={{ minWidth: 120 }}>
+                        <InputLabel>Itens por página</InputLabel>
+                        <Select
+                          value={gglGrPageSize}
+                          onChange={(e) => {
+                            setGglGrPageSize(Number(e.target.value));
+                            setGglGrPage(1); // Reset para primeira página
+                          }}
+                          label="Itens por página"
+                        >
+                          <MenuItem value={10}>10</MenuItem>
+                          <MenuItem value={20}>20</MenuItem>
+                          <MenuItem value={50}>50</MenuItem>
+                          <MenuItem value={100}>100</MenuItem>
+                        </Select>
+                      </FormControl>
+                      
+                      <Pagination
+                        count={gglGrTotalPages}
+                        page={gglGrPage}
+                        onChange={(e, page) => setGglGrPage(page)}
+                        color="primary"
+                        showFirstButton
+                        showLastButton
+                        size="large"
+                      />
+                    </Box>
+                  </Box>
+                </CardContent>
+              </Card>
+            )}
           </Box>
         </Zoom>
       )}
@@ -1247,9 +1425,6 @@ Gerado automaticamente`;
                 <Typography variant="body1" sx={{ ml: 2, mb: 0.5 }}>
                   • Domingo: {(selectedLojaForCarimbo as any)['DOM'] || 'N/A'}
                 </Typography>
-                <Typography variant="body1" sx={{ ml: 2, mb: 1 }}>
-                  • Funcionário: {(selectedLojaForCarimbo as any)['FUNC.'] || 'N/A'}
-                </Typography>
                 
                 {tab === 4 && selectedLoja && selectedOperadora && selectedCircuito && (
                   <>
@@ -1268,16 +1443,6 @@ Gerado automaticamente`;
                     </Typography>
                   </>
                 )}
-                
-                <Typography variant="h6" sx={{ mt: 2, mb: 1, fontWeight: 'bold' }}>
-                  🔍 BUSCA REALIZADA
-                </Typography>
-                <Typography variant="body1" sx={{ ml: 2, mb: 0.5 }}>
-                  Tipo: {tabLabels[tab]?.label || 'Busca'}
-                </Typography>
-                <Typography variant="body1" sx={{ ml: 2, mb: 1 }}>
-                  Data/Hora: {new Date().toLocaleDateString('pt-BR')} {new Date().toLocaleTimeString('pt-BR')}
-                </Typography>
                 
                 <Box sx={{ mt: 2, pt: 2, borderTop: '1px solid #404040' }}>
                   <Typography variant="body2" color="text.secondary">
