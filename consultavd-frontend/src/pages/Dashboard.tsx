@@ -207,10 +207,10 @@ const Dashboard: React.FC = () => {
   const operadoraDataRaw = Object.entries(stats?.circuitos_por_operadora || {})
     .sort(([, a], [, b]) => b - a);
   const topOperadoras = operadoraDataRaw.slice(0, 7);
-  const outrosCount = operadoraDataRaw.slice(7).reduce((acc, [, count]) => acc + count, 0);
+  const outrosOperadorasCount = operadoraDataRaw.slice(7).reduce((acc, [, count]) => acc + count, 0);
   const operadoraData = [
     ...topOperadoras.map(([op, count]) => ({ name: op, value: count })),
-    ...(outrosCount > 0 ? [{ name: 'Outros', value: outrosCount }] : [])
+    ...(outrosOperadorasCount > 0 ? [{ name: 'Outros', value: outrosOperadorasCount }] : [])
   ];
 
   // Substituir valores fixos por dados reais do backend
