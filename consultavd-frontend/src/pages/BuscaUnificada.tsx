@@ -72,6 +72,7 @@ import ContactSupportIcon from '@mui/icons-material/ContactSupport';
 import CheckIcon from '@mui/icons-material/Check';
 import WarningIcon from '@mui/icons-material/Warning';
 import CloseIcon from '@mui/icons-material/Close';
+import DownloadIcon from '@mui/icons-material/Download';
 
 // Hook para debounce
 const useDebounce = (value: string, delay: number) => {
@@ -383,6 +384,7 @@ const BuscaUnificada: React.FC = () => {
   const [copied, setCopied] = useState<string>('');
   const [showCarimboModal, setShowCarimboModal] = useState(false);
   const [selectedLojaForCarimbo, setSelectedLojaForCarimbo] = useState<any>(null);
+  const [exportingCsv, setExportingCsv] = useState(false);
 
   const clearSearch = useCallback(() => {
     setPeopleCode('');
@@ -393,6 +395,45 @@ const BuscaUnificada: React.FC = () => {
     setResult(null);
     setError(null);
   }, []);
+
+  // Função para exportar CSV
+  const handleExportCsv = useCallback(async () => {
+    if (!result?.lojas || result.lojas.length === 0) {
+      setError('Nenhum resultado para exportar');
+      return;
+    }
+
+    setExportingCsv(true);
+    try {
+      const results = tab === 5 ? gglGrSortedLojas : filteredAndSortedLojas;
+      const searchType = tabLabels[tab]?.label || 'busca';
+      const filters = tab === 5 ? {
+        status: gglGrStatusFilter,
+        cidade: gglGrCidadeFilter,
+        ordenacao: `${gglGrSortField} ${gglGrSortAsc ? 'A-Z' : 'Z-A'}`
+      } : {};
+
+      const blob = await apiService.exportSearchResults(results, searchType, filters);
+      
+      // Criar link para download
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `resultados_${searchType.toLowerCase().replace(/\s+/g, '_')}_${new Date().toISOString().slice(0, 19).replace(/:/g, '-')}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      
+      setCopied('csv');
+      setTimeout(() => setCopied(''), 3000);
+    } catch (error) {
+      setError('Erro ao exportar CSV');
+      console.error('Erro na exportação:', error);
+    } finally {
+      setExportingCsv(false);
+    }
+  }, [result, tab, gglGrSortedLojas, filteredAndSortedLojas, gglGrStatusFilter, gglGrCidadeFilter, gglGrSortField, gglGrSortAsc]);
 
   // Função para gerar carimbo
   const generateCarimbo = useCallback((loja: any) => {
@@ -1122,10 +1163,24 @@ ${selectedCircuito}`;
               {result && tab === 5 && (
                 <Card sx={{ mb: 3, borderRadius: 3 }}>
                   <CardContent>
-                    <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <FilterListIcon color="primary" />
-                      Filtros e Ordenação
-                    </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <FilterListIcon color="primary" />
+                        Filtros e Ordenação
+                      </Typography>
+                      
+                      <Button
+                        variant="contained"
+                        color="success"
+                        onClick={handleExportCsv}
+                        disabled={exportingCsv || !result?.lojas || result.lojas.length === 0}
+                        startIcon={exportingCsv ? <CircularProgress size={20} /> : <DownloadIcon />}
+                        sx={{ minWidth: 140 }}
+                      >
+                        {exportingCsv ? 'Exportando...' : copied === 'csv' ? 'EXPORTADO!' : 'Exportar CSV'}
+                      </Button>
+                    </Box>
+                    
                     <Grid container spacing={2} alignItems="center">
                       <Grid item xs={12} sm={6} md={3}>
                         <FormControl fullWidth size="small">

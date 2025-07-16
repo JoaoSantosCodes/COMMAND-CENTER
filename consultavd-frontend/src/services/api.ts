@@ -214,6 +214,17 @@ class ApiService {
     return response.data;
   }
 
+  async exportSearchResults(results: any[], searchType: string, filters: any = {}): Promise<Blob> {
+    const response = await this.api.post('/api/export/search-results', {
+      results,
+      searchType,
+      filters
+    }, {
+      responseType: 'blob'
+    });
+    return response.data;
+  }
+
   // Health Check
   async healthCheck(): Promise<boolean> {
     try {

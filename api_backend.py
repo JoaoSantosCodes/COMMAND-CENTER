@@ -483,6 +483,51 @@ async def export_data_api(table: str, format: str = Query("csv", regex="^(csv|ex
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.post("/api/export/search-results")
+async def export_search_results_api(data: dict = Body(...)):
+    try:
+        results = data.get("results", [])
+        search_type = data.get("searchType", "busca")
+        filters = data.get("filters", {})
+        
+        if not results:
+            raise HTTPException(status_code=400, detail="Nenhum resultado para exportar")
+        
+        # Criar DataFrame com os resultados
+        df = pd.DataFrame(results)
+        
+        # Adicionar metadados da busca
+        metadata = {
+            "Data_Exportacao": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "Tipo_Busca": search_type,
+            "Total_Resultados": len(results),
+            "Filtros_Aplicados": str(filters)
+        }
+        
+        # Adicionar metadados como primeira linha
+        metadata_df = pd.DataFrame([metadata])
+        df_with_metadata = pd.concat([metadata_df, df], ignore_index=True)
+        
+        # Gerar nome do arquivo
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        filename = f"resultados_{search_type}_{timestamp}.csv"
+        filepath = f"temp/{filename}"
+        
+        # Criar diretório temp se não existir
+        os.makedirs("temp", exist_ok=True)
+        
+        # Exportar para CSV
+        df_with_metadata.to_csv(filepath, index=False, encoding='utf-8-sig')
+        
+        return FileResponse(
+            filepath, 
+            filename=filename,
+            media_type='text/csv',
+            headers={'Content-Disposition': f'attachment; filename="{filename}"'}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/search/people", response_model=ApiResponse)
 async def search_people_api(code: str = Query(..., min_length=1)):
     try:
