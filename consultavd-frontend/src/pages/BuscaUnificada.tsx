@@ -656,115 +656,278 @@ const BuscaUnificada: React.FC = () => {
           )}
           
           {tab === 4 && (
-            <Card sx={{ mb: 3, borderRadius: 3 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <StoreIcon color="primary" />
-                  Busca Loja {'>'} Operadora {'>'} Circuito
-                </Typography>
-                
-                {/* Busca de Loja */}
-                <Box mb={3}>
-                  <Typography variant="subtitle1" mb={1} color="primary">
-                    1. Busque a Loja
+            <Box>
+              {/* Header da seção */}
+              <Card sx={{ mb: 3, borderRadius: 3, background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)' }}>
+                <CardContent>
+                  <Typography variant="h5" gutterBottom sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    fontWeight: 'bold',
+                    color: '#2c3e50'
+                  }}>
+                    <StoreIcon sx={{ fontSize: 32, color: '#e74c3c' }} />
+                    Busca Loja {'>'} Operadora {'>'} Circuito
                   </Typography>
-                  <TextField
-                    label="Digite o nome ou código da loja"
-                    value={lojaSearch}
-                    onChange={e => handleLojaSearch(e.target.value)}
-                    fullWidth
-                    sx={{ mb: 2 }}
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position="start">
-                          <SearchIcon color="action" />
-                        </InputAdornment>
-                      ),
+                  <Typography variant="body1" color="textSecondary" sx={{ ml: 6 }}>
+                    Selecione uma loja, operadora e circuito para buscar informações detalhadas
+                  </Typography>
+                </CardContent>
+              </Card>
+
+              {/* Fluxo de seleção */}
+              <Grid container spacing={3}>
+                {/* Passo 1: Busca de Loja */}
+                <Grid item xs={12} md={4}>
+                  <Card sx={{ 
+                    borderRadius: 3, 
+                    height: '100%',
+                    border: selectedLoja ? '2px solid #27ae60' : '2px solid transparent',
+                    transition: 'all 0.3s ease',
+                    '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 }
+                  }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <Box sx={{ 
+                          width: 32, 
+                          height: 32, 
+                          borderRadius: '50%', 
+                          bgcolor: selectedLoja ? '#27ae60' : '#95a5a6',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }}>
+                          1
+                        </Box>
+                        <Typography variant="h6" fontWeight="bold" color={selectedLoja ? 'success.main' : 'text.primary'}>
+                          Busque a Loja
+                        </Typography>
+                      </Box>
+                      
+                      <TextField
+                        label="Nome ou código da loja"
+                        value={lojaSearch}
+                        onChange={e => handleLojaSearch(e.target.value)}
+                        fullWidth
+                        size="small"
+                        placeholder="Ex: São Paulo ou SP001"
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position="start">
+                              <SearchIcon color="action" />
+                            </InputAdornment>
+                          ),
+                        }}
+                        sx={{ mb: 2 }}
+                      />
+                      
+                      {lojasFiltradas.length > 0 && (
+                        <FormControl fullWidth size="small">
+                          <InputLabel>Selecione a Loja</InputLabel>
+                          <Select
+                            value={selectedLoja}
+                            onChange={e => handleLojaSelect(e.target.value)}
+                            label="Selecione a Loja"
+                          >
+                            {lojasFiltradas.map((loja) => (
+                              <MenuItem key={loja.id} value={loja.id}>
+                                <Box>
+                                  <Typography variant="body2" fontWeight="bold">
+                                    {loja.codigo} - {loja.nome}
+                                  </Typography>
+                                  <Typography variant="caption" color="textSecondary">
+                                    {loja.cidade} - {loja.uf}
+                                  </Typography>
+                                </Box>
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Passo 2: Seleção de Operadora */}
+                <Grid item xs={12} md={4}>
+                  <Card sx={{ 
+                    borderRadius: 3, 
+                    height: '100%',
+                    border: selectedOperadora ? '2px solid #3498db' : '2px solid transparent',
+                    transition: 'all 0.3s ease',
+                    '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
+                    opacity: selectedLoja ? 1 : 0.6
+                  }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <Box sx={{ 
+                          width: 32, 
+                          height: 32, 
+                          borderRadius: '50%', 
+                          bgcolor: selectedOperadora ? '#3498db' : '#95a5a6',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }}>
+                          2
+                        </Box>
+                        <Typography variant="h6" fontWeight="bold" color={selectedOperadora ? 'primary.main' : 'text.primary'}>
+                          Operadora
+                        </Typography>
+                      </Box>
+                      
+                      <FormControl fullWidth size="small" disabled={!selectedLoja}>
+                        <InputLabel>Selecione a Operadora</InputLabel>
+                        <Select
+                          value={selectedOperadora}
+                          onChange={e => handleOperadoraSelect(e.target.value)}
+                          label="Selecione a Operadora"
+                        >
+                          {operadoras.map((operadora) => (
+                            <MenuItem key={operadora} value={operadora}>
+                              {operadora}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      
+                      {!selectedLoja && (
+                        <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+                          Selecione uma loja primeiro
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+
+                {/* Passo 3: Seleção de Circuito */}
+                <Grid item xs={12} md={4}>
+                  <Card sx={{ 
+                    borderRadius: 3, 
+                    height: '100%',
+                    border: selectedCircuito ? '2px solid #e74c3c' : '2px solid transparent',
+                    transition: 'all 0.3s ease',
+                    '&:hover': { transform: 'translateY(-2px)', boxShadow: 4 },
+                    opacity: selectedOperadora ? 1 : 0.6
+                  }}>
+                    <CardContent>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                        <Box sx={{ 
+                          width: 32, 
+                          height: 32, 
+                          borderRadius: '50%', 
+                          bgcolor: selectedCircuito ? '#e74c3c' : '#95a5a6',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'white',
+                          fontWeight: 'bold'
+                        }}>
+                          3
+                        </Box>
+                        <Typography variant="h6" fontWeight="bold" color={selectedCircuito ? 'error.main' : 'text.primary'}>
+                          Circuito
+                        </Typography>
+                      </Box>
+                      
+                      <FormControl fullWidth size="small" disabled={!selectedOperadora}>
+                        <InputLabel>Selecione o Circuito</InputLabel>
+                        <Select
+                          value={selectedCircuito}
+                          onChange={e => setSelectedCircuito(e.target.value)}
+                          label="Selecione o Circuito"
+                        >
+                          {circuitos.map((circuito) => (
+                            <MenuItem key={circuito} value={circuito}>
+                              {circuito}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                      
+                      {!selectedOperadora && (
+                        <Typography variant="caption" color="textSecondary" sx={{ mt: 1, display: 'block' }}>
+                          Selecione uma operadora primeiro
+                        </Typography>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+
+              {/* Botão de busca */}
+              {selectedCircuito && (
+                <Box sx={{ 
+                  display: 'flex', 
+                  justifyContent: 'center', 
+                  mt: 4,
+                  animation: 'fadeInUp 0.5s ease'
+                }}>
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleSearch}
+                    disabled={loading}
+                    startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
+                    size="large"
+                    sx={{ 
+                      minWidth: 250,
+                      height: 56,
+                      fontSize: '1.1rem',
+                      fontWeight: 'bold',
+                      borderRadius: 3,
+                      background: 'linear-gradient(45deg, #2196F3 30%, #21CBF3 90%)',
+                      boxShadow: '0 3px 5px 2px rgba(33, 203, 243, .3)',
+                      '&:hover': {
+                        background: 'linear-gradient(45deg, #1976D2 30%, #1E88E5 90%)',
+                        transform: 'scale(1.05)'
+                      }
                     }}
-                  />
-                  
-                  {lojasFiltradas.length > 0 && (
-                    <FormControl fullWidth sx={{ mb: 2 }}>
-                      <InputLabel>Selecione a Loja</InputLabel>
-                      <Select
-                        value={selectedLoja}
-                        onChange={e => handleLojaSelect(e.target.value)}
-                        label="Selecione a Loja"
-                      >
-                        {lojasFiltradas.map((loja) => (
-                          <MenuItem key={loja.id} value={loja.id}>
-                            {loja.codigo} - {loja.nome}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  )}
+                  >
+                    {loading ? 'Buscando...' : '🔍 Buscar Circuito'}
+                  </Button>
                 </Box>
+              )}
 
-                {/* Seleção de Operadora */}
-                {selectedLoja && (
-                  <Box mb={3}>
-                    <Typography variant="subtitle1" mb={1} color="primary">
-                      2. Selecione a Operadora
-                    </Typography>
-                    <FormControl fullWidth sx={{ mb: 2 }}>
-                      <InputLabel>Operadora</InputLabel>
-                      <Select
-                        value={selectedOperadora}
-                        onChange={e => handleOperadoraSelect(e.target.value)}
-                        label="Operadora"
-                      >
-                        {operadoras.map((operadora) => (
-                          <MenuItem key={operadora} value={operadora}>
-                            {operadora}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Box>
-                )}
-
-                {/* Seleção de Circuito */}
-                {selectedOperadora && (
-                  <Box mb={3}>
-                    <Typography variant="subtitle1" mb={1} color="primary">
-                      3. Selecione o Circuito
-                    </Typography>
-                    <FormControl fullWidth sx={{ mb: 2 }}>
-                      <InputLabel>Circuito</InputLabel>
-                      <Select
-                        value={selectedCircuito}
-                        onChange={e => setSelectedCircuito(e.target.value)}
-                        label="Circuito"
-                      >
-                        {circuitos.map((circuito) => (
-                          <MenuItem key={circuito} value={circuito}>
-                            {circuito}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
-                  </Box>
-                )}
-
-                {/* Botão de busca */}
-                {selectedCircuito && (
-                  <Box display="flex" justifyContent="center">
-                    <Button 
-                      variant="contained" 
-                      color="primary" 
-                      onClick={handleSearch}
-                      disabled={loading}
-                      startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
-                      size="large"
-                      sx={{ minWidth: 200 }}
-                    >
-                      {loading ? 'Buscando...' : 'Buscar Circuito'}
-                    </Button>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
+              {/* Indicador de progresso */}
+              <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box sx={{ 
+                    width: 12, 
+                    height: 12, 
+                    borderRadius: '50%', 
+                    bgcolor: selectedLoja ? '#27ae60' : '#ecf0f1' 
+                  }} />
+                  <Box sx={{ 
+                    width: 40, 
+                    height: 2, 
+                    bgcolor: selectedOperadora ? '#3498db' : '#ecf0f1' 
+                  }} />
+                  <Box sx={{ 
+                    width: 12, 
+                    height: 12, 
+                    borderRadius: '50%', 
+                    bgcolor: selectedOperadora ? '#3498db' : '#ecf0f1' 
+                  }} />
+                  <Box sx={{ 
+                    width: 40, 
+                    height: 2, 
+                    bgcolor: selectedCircuito ? '#e74c3c' : '#ecf0f1' 
+                  }} />
+                  <Box sx={{ 
+                    width: 12, 
+                    height: 12, 
+                    borderRadius: '50%', 
+                    bgcolor: selectedCircuito ? '#e74c3c' : '#ecf0f1' 
+                  }} />
+                </Box>
+              </Box>
+            </Box>
           )}
           
           {tab === 5 && (
