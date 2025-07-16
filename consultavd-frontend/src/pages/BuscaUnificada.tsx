@@ -1,7 +1,47 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { apiService } from '../services/api';
 import { SearchResult } from '../types';
-import { Box, Typography, TextField, Button, CircularProgress, Alert, Paper, Tabs, Tab, Container, Select, MenuItem, FormControl, InputLabel, List, ListItem, ListItemText, ListItemIcon, Chip, Divider } from '@mui/material';
+import { 
+  Box, 
+  Typography, 
+  TextField, 
+  Button, 
+  CircularProgress, 
+  Alert, 
+  Paper, 
+  Tabs, 
+  Tab, 
+  Container, 
+  Select, 
+  MenuItem, 
+  FormControl, 
+  InputLabel, 
+  List, 
+  ListItem, 
+  ListItemText, 
+  ListItemIcon, 
+  Chip, 
+  Divider,
+  IconButton,
+  Tooltip,
+  Badge,
+  Fab,
+  Card,
+  CardContent,
+  Grid,
+  InputAdornment,
+  Autocomplete,
+  Switch,
+  FormControlLabel,
+  Collapse,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Skeleton,
+  Fade,
+  Zoom,
+  Slide
+} from '@mui/material';
 import PeopleCard from '../components/PeopleCard';
 import PeopleContactCard from '../components/PeopleContactCard';
 import CarimboGenerator from '../components/CarimboGenerator';
@@ -11,13 +51,20 @@ import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import SearchIcon from '@mui/icons-material/Search';
 import SortIcon from '@mui/icons-material/Sort';
 import PieChartOutlineIcon from '@mui/icons-material/PieChartOutline';
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts';
 import RoomIcon from '@mui/icons-material/Room';
 import EmailIcon from '@mui/icons-material/Email';
 import PhoneIcon from '@mui/icons-material/Phone';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import Collapse from '@mui/material/Collapse';
-import Tooltip from '@mui/material/Tooltip';
+import FilterListIcon from '@mui/icons-material/FilterList';
+import RefreshIcon from '@mui/icons-material/Refresh';
+import ClearIcon from '@mui/icons-material/Clear';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PersonIcon from '@mui/icons-material/Person';
+import StoreIcon from '@mui/icons-material/Store';
+import WifiIcon from '@mui/icons-material/Wifi';
+import ContactSupportIcon from '@mui/icons-material/ContactSupport';
 
 // Hook para debounce
 const useDebounce = (value: string, delay: number) => {
@@ -37,19 +84,19 @@ const useDebounce = (value: string, delay: number) => {
 };
 
 const tabLabels = [
-  'People/PEOP',
-  'Designação',
-  'ID Vivo',
-  'Endereço',
-  'Busca Loja > Operadora > Circuito',
-  'GGL e GR',
+  { label: 'People/PEOP', icon: <PersonIcon />, color: '#2196f3' },
+  { label: 'Designação', icon: <BusinessIcon />, color: '#4caf50' },
+  { label: 'ID Vivo', icon: <WifiIcon />, color: '#ff9800' },
+  { label: 'Endereço', icon: <LocationOnIcon />, color: '#9c27b0' },
+  { label: 'Busca Loja > Operadora > Circuito', icon: <StoreIcon />, color: '#f44336' },
+  { label: 'GGL e GR', icon: <ContactSupportIcon />, color: '#607d8b' },
 ];
 
 const statusOptions = [
-  { value: '', label: 'Todos' },
-  { value: 'ATIVA', label: 'Ativa' },
-  { value: 'INATIVA', label: 'Inativa' },
-  { value: 'PENDENTE', label: 'Pendente' },
+  { value: '', label: 'Todos', color: '#757575' },
+  { value: 'ATIVA', label: 'Ativa', color: '#4caf50' },
+  { value: 'INATIVA', label: 'Inativa', color: '#f44336' },
+  { value: 'PENDENTE', label: 'Pendente', color: '#ff9800' },
 ];
 
 const BuscaUnificada: React.FC = () => {
@@ -57,6 +104,8 @@ const BuscaUnificada: React.FC = () => {
   const [result, setResult] = useState<SearchResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
+  const [autoSearch, setAutoSearch] = useState(false);
 
   // Campos separados para cada tab
   const [peopleCode, setPeopleCode] = useState('');
@@ -78,6 +127,10 @@ const BuscaUnificada: React.FC = () => {
 
   // Debounce para busca de lojas
   const debouncedLojaSearch = useDebounce(lojaSearch, 300);
+  const debouncedPeopleCode = useDebounce(peopleCode, 500);
+  const debouncedDesignation = useDebounce(designation, 500);
+  const debouncedIdVivo = useDebounce(idVivo, 500);
+  const debouncedAddress = useDebounce(address, 500);
 
   // Memoizar resultados para evitar re-renders desnecessários
   const memoizedResult = useMemo(() => result, [result]);
@@ -175,6 +228,20 @@ const BuscaUnificada: React.FC = () => {
     }
   }, [tab, peopleCode, designation, address, selectedLoja, selectedOperadora, selectedCircuito, gglGrSearch, idVivo]);
 
+  // Auto-search quando habilitado
+  React.useEffect(() => {
+    if (autoSearch) {
+      const currentValue = tab === 0 ? debouncedPeopleCode : 
+                          tab === 1 ? debouncedDesignation :
+                          tab === 2 ? debouncedIdVivo :
+                          tab === 3 ? debouncedAddress : '';
+      
+      if (currentValue.length >= 3) {
+        handleSearch();
+      }
+    }
+  }, [autoSearch, debouncedPeopleCode, debouncedDesignation, debouncedIdVivo, debouncedAddress, tab, handleSearch]);
+
   const handleKeyPress = useCallback((event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
       handleSearch();
@@ -257,10 +324,84 @@ const BuscaUnificada: React.FC = () => {
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const [copied, setCopied] = useState<string>('');
 
+  const clearSearch = useCallback(() => {
+    setPeopleCode('');
+    setDesignation('');
+    setIdVivo('');
+    setAddress('');
+    setGglGrSearch('');
+    setResult(null);
+    setError(null);
+  }, []);
+
   return (
-    <Box>
-      <Typography variant="h5" fontWeight={700} mb={2}>Busca Unificada</Typography>
-      <Paper sx={{ mb: 2 }}>
+    <Container maxWidth="xl" sx={{ mt: 2, mb: 4 }}>
+      {/* Header com controles */}
+      <Box sx={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        mb: 3,
+        flexDirection: { xs: 'column', md: 'row' },
+        gap: 2
+      }}>
+        <Box>
+          <Typography 
+            variant="h4" 
+            component="h1" 
+            fontWeight="bold"
+            sx={{ 
+              background: 'linear-gradient(45deg, #2196F3, #21CBF3)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              mb: 0.5
+            }}
+          >
+            🔍 Busca Unificada
+          </Typography>
+          <Typography variant="body2" color="textSecondary">
+            Sistema de busca integrado para consultas rápidas
+          </Typography>
+        </Box>
+        
+        <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={autoSearch}
+                onChange={(e) => setAutoSearch(e.target.checked)}
+                size="small"
+              />
+            }
+            label="Auto-busca"
+          />
+          
+          <Tooltip title="Filtros">
+            <IconButton 
+              onClick={() => setShowFilters(!showFilters)}
+              sx={{ 
+                bgcolor: showFilters ? 'primary.main' : 'transparent',
+                color: showFilters ? 'white' : 'inherit',
+                '&:hover': {
+                  bgcolor: showFilters ? 'primary.dark' : 'action.hover'
+                }
+              }}
+            >
+              <FilterListIcon />
+            </IconButton>
+          </Tooltip>
+          
+          <Tooltip title="Limpar">
+            <IconButton onClick={clearSearch}>
+              <ClearIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
+      </Box>
+
+      {/* Tabs melhorados */}
+      <Paper sx={{ mb: 3, borderRadius: 3, overflow: 'hidden' }}>
         <Tabs
           value={tab}
           onChange={handleTabChange}
@@ -268,451 +409,567 @@ const BuscaUnificada: React.FC = () => {
           textColor="primary"
           variant="scrollable"
           scrollButtons="auto"
+          sx={{
+            '& .MuiTab-root': {
+              minHeight: 64,
+              fontSize: '0.9rem',
+              fontWeight: 600,
+              textTransform: 'none',
+              '&.Mui-selected': {
+                color: tabLabels[tab]?.color || 'primary.main',
+              }
+            },
+            '& .MuiTabs-indicator': {
+              backgroundColor: tabLabels[tab]?.color || 'primary.main',
+              height: 3
+            }
+          }}
         >
-          {tabLabels.map((label, idx) => (
-            <Tab label={label} key={label} />
+          {tabLabels.map((tabInfo, idx) => (
+            <Tab 
+              key={tabInfo.label} 
+              label={
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {tabInfo.icon}
+                  <Typography variant="body2">{tabInfo.label}</Typography>
+                </Box>
+              }
+              sx={{ color: tab === idx ? tabInfo.color : 'inherit' }}
+            />
           ))}
         </Tabs>
       </Paper>
-      
-      {tab === 0 && (
-        <Box p={2}>
-          <Typography>Busca por código People/PEOP</Typography>
-          <Box display="flex" gap={2} mb={3} mt={2}>
-            <TextField
-              label="Código People/PEOP"
-              value={peopleCode}
-              onChange={e => setPeopleCode(e.target.value)}
-              onKeyPress={handleKeyPress}
-              fullWidth
-            />
-            <Button variant="contained" color="primary" onClick={handleSearch} disabled={loading || !peopleCode}>
-              Buscar
-            </Button>
-          </Box>
-        </Box>
-      )}
-      
-      {tab === 1 && (
-        <Box p={2}>
-          <Typography>Busca por Designação</Typography>
-          <Box display="flex" gap={2} mb={3} mt={2}>
-            <TextField
-              label="Designação"
-              value={designation}
-              onChange={e => setDesignation(e.target.value)}
-              onKeyPress={handleKeyPress}
-              fullWidth
-            />
-            <Button variant="contained" color="primary" onClick={handleSearch} disabled={loading || !designation}>
-              Buscar
-            </Button>
-          </Box>
-        </Box>
-      )}
-      
-      {tab === 2 && (
-        <Box p={2}>
-          <Typography>Busca por ID Vivo</Typography>
-          <Box display="flex" gap={2} mb={3} mt={2}>
-            <TextField
-              label="ID Vivo"
-              value={idVivo}
-              onChange={e => setIdVivo(e.target.value)}
-              onKeyPress={handleKeyPress}
-              fullWidth
-              placeholder="Digite o ID Vivo"
-            />
-            <Button variant="contained" color="primary" onClick={handleSearch} disabled={loading || !idVivo}>
-              Buscar
-            </Button>
-          </Box>
-        </Box>
-      )}
-      
-      {tab === 3 && (
-        <Box p={2}>
-          <Typography>Busca por Endereço</Typography>
-          <Box display="flex" gap={2} mb={3} mt={2}>
-            <TextField
-              label="Endereço"
-              value={address}
-              onChange={e => setAddress(e.target.value)}
-              onKeyPress={handleKeyPress}
-              fullWidth
-            />
-            <Button variant="contained" color="primary" onClick={handleSearch} disabled={loading || !address}>
-              Buscar
-            </Button>
-          </Box>
-        </Box>
-      )}
-      
-      {tab === 4 && (
-        <Box p={2}>
-          <Typography variant="h6" mb={2}>Busca Loja &gt; Operadora &gt; Circuito</Typography>
-          
-          {/* Busca de Loja */}
-          <Box mb={3}>
-            <Typography variant="subtitle1" mb={1}>1. Busque a Loja</Typography>
-            <TextField
-              label="Digite o nome ou código da loja"
-              value={lojaSearch}
-              onChange={e => handleLojaSearch(e.target.value)}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
-            
-            {lojasFiltradas.length > 0 && (
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Selecione a Loja</InputLabel>
+
+      {/* Filtros avançados */}
+      <Collapse in={showFilters}>
+        <Paper sx={{ p: 3, mb: 3, borderRadius: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            🔧 Filtros Avançados
+          </Typography>
+          <Grid container spacing={2} alignItems="center">
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Status</InputLabel>
                 <Select
-                  value={selectedLoja}
-                  onChange={e => handleLojaSelect(e.target.value)}
-                  label="Selecione a Loja"
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value)}
+                  label="Status"
                 >
-                  {lojasFiltradas.map((loja) => (
-                    <MenuItem key={loja.id} value={loja.id}>
-                      {loja.codigo} - {loja.nome}
+                  {statusOptions.map((option) => (
+                    <MenuItem key={option.value} value={option.value}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: option.color }} />
+                        {option.label}
+                      </Box>
                     </MenuItem>
                   ))}
                 </Select>
               </FormControl>
-            )}
-          </Box>
-
-          {/* Seleção de Operadora */}
-          {selectedLoja && (
-            <Box mb={3}>
-              <Typography variant="subtitle1" mb={1}>2. Selecione a Operadora</Typography>
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Operadora</InputLabel>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <TextField
+                label="Busca rápida"
+                value={quickSearch}
+                onChange={(e) => setQuickSearch(e.target.value)}
+                size="small"
+                fullWidth
+                placeholder="Nome, código ou cidade..."
+              />
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Ordenar por</InputLabel>
                 <Select
-                  value={selectedOperadora}
-                  onChange={e => handleOperadoraSelect(e.target.value)}
-                  label="Operadora"
+                  value={sortField}
+                  onChange={(e) => setSortField(e.target.value as any)}
+                  label="Ordenar por"
                 >
-                  {operadoras.map((operadora) => (
-                    <MenuItem key={operadora} value={operadora}>
-                      {operadora}
-                    </MenuItem>
-                  ))}
+                  <MenuItem value="nome">Nome</MenuItem>
+                  <MenuItem value="codigo">Código</MenuItem>
+                  <MenuItem value="cidade">Cidade</MenuItem>
                 </Select>
               </FormControl>
-            </Box>
-          )}
-
-          {/* Seleção de Circuito */}
-          {selectedOperadora && (
-            <Box mb={3}>
-              <Typography variant="subtitle1" mb={1}>3. Selecione o Circuito</Typography>
-              <FormControl fullWidth sx={{ mb: 2 }}>
-                <InputLabel>Circuito</InputLabel>
-                <Select
-                  value={selectedCircuito}
-                  onChange={e => setSelectedCircuito(e.target.value)}
-                  label="Circuito"
-                >
-                  {circuitos.map((circuito) => (
-                    <MenuItem key={circuito} value={circuito}>
-                      {circuito}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Box>
-          )}
-
-          {/* Botão de Busca */}
-          {selectedCircuito && (
-            <Box display="flex" gap={2}>
-              <Button 
-                variant="contained" 
-                color="primary" 
-                onClick={handleSearch} 
-                disabled={loading}
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Button
+                variant="outlined"
+                onClick={() => setSortAsc(!sortAsc)}
+                startIcon={<SortIcon />}
                 fullWidth
               >
-                Buscar Circuito
+                {sortAsc ? 'A-Z' : 'Z-A'}
               </Button>
-            </Box>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Collapse>
+      
+      {/* Conteúdo das abas */}
+      <Fade in timeout={300}>
+        <Box>
+          {tab === 0 && (
+            <Card sx={{ mb: 3, borderRadius: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <PersonIcon color="primary" />
+                  Busca por código People/PEOP
+                </Typography>
+                <Box display="flex" gap={2} alignItems="flex-end">
+                  <TextField
+                    label="Código People/PEOP"
+                    value={peopleCode}
+                    onChange={e => setPeopleCode(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    fullWidth
+                    placeholder="Digite o código People/PEOP"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <PersonIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleSearch} 
+                    disabled={loading || !peopleCode}
+                    startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
+                    sx={{ minWidth: 120 }}
+                  >
+                    {loading ? 'Buscando...' : 'Buscar'}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+          
+          {tab === 1 && (
+            <Card sx={{ mb: 3, borderRadius: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <BusinessIcon color="primary" />
+                  Busca por Designação
+                </Typography>
+                <Box display="flex" gap={2} alignItems="flex-end">
+                  <TextField
+                    label="Designação"
+                    value={designation}
+                    onChange={e => setDesignation(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    fullWidth
+                    placeholder="Digite a designação da loja"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <BusinessIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleSearch} 
+                    disabled={loading || !designation}
+                    startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
+                    sx={{ minWidth: 120 }}
+                  >
+                    {loading ? 'Buscando...' : 'Buscar'}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+          
+          {tab === 2 && (
+            <Card sx={{ mb: 3, borderRadius: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <WifiIcon color="primary" />
+                  Busca por ID Vivo
+                </Typography>
+                <Box display="flex" gap={2} alignItems="flex-end">
+                  <TextField
+                    label="ID Vivo"
+                    value={idVivo}
+                    onChange={e => setIdVivo(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    fullWidth
+                    placeholder="Digite o ID Vivo"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <WifiIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleSearch} 
+                    disabled={loading || !idVivo}
+                    startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
+                    sx={{ minWidth: 120 }}
+                  >
+                    {loading ? 'Buscando...' : 'Buscar'}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+          
+          {tab === 3 && (
+            <Card sx={{ mb: 3, borderRadius: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <LocationOnIcon color="primary" />
+                  Busca por Endereço
+                </Typography>
+                <Box display="flex" gap={2} alignItems="flex-end">
+                  <TextField
+                    label="Endereço"
+                    value={address}
+                    onChange={e => setAddress(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    fullWidth
+                    placeholder="Digite o endereço"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <LocationOnIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleSearch} 
+                    disabled={loading || !address}
+                    startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
+                    sx={{ minWidth: 120 }}
+                  >
+                    {loading ? 'Buscando...' : 'Buscar'}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+          )}
+          
+          {tab === 4 && (
+            <Card sx={{ mb: 3, borderRadius: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <StoreIcon color="primary" />
+                  Busca Loja > Operadora > Circuito
+                </Typography>
+                
+                {/* Busca de Loja */}
+                <Box mb={3}>
+                  <Typography variant="subtitle1" mb={1} color="primary">
+                    1. Busque a Loja
+                  </Typography>
+                  <TextField
+                    label="Digite o nome ou código da loja"
+                    value={lojaSearch}
+                    onChange={e => handleLojaSearch(e.target.value)}
+                    fullWidth
+                    sx={{ mb: 2 }}
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <SearchIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  
+                  {lojasFiltradas.length > 0 && (
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                      <InputLabel>Selecione a Loja</InputLabel>
+                      <Select
+                        value={selectedLoja}
+                        onChange={e => handleLojaSelect(e.target.value)}
+                        label="Selecione a Loja"
+                      >
+                        {lojasFiltradas.map((loja) => (
+                          <MenuItem key={loja.id} value={loja.id}>
+                            {loja.codigo} - {loja.nome}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                </Box>
+
+                {/* Seleção de Operadora */}
+                {selectedLoja && (
+                  <Box mb={3}>
+                    <Typography variant="subtitle1" mb={1} color="primary">
+                      2. Selecione a Operadora
+                    </Typography>
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                      <InputLabel>Operadora</InputLabel>
+                      <Select
+                        value={selectedOperadora}
+                        onChange={e => handleOperadoraSelect(e.target.value)}
+                        label="Operadora"
+                      >
+                        {operadoras.map((operadora) => (
+                          <MenuItem key={operadora} value={operadora}>
+                            {operadora}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                )}
+
+                {/* Seleção de Circuito */}
+                {selectedOperadora && (
+                  <Box mb={3}>
+                    <Typography variant="subtitle1" mb={1} color="primary">
+                      3. Selecione o Circuito
+                    </Typography>
+                    <FormControl fullWidth sx={{ mb: 2 }}>
+                      <InputLabel>Circuito</InputLabel>
+                      <Select
+                        value={selectedCircuito}
+                        onChange={e => setSelectedCircuito(e.target.value)}
+                        label="Circuito"
+                      >
+                        {circuitos.map((circuito) => (
+                          <MenuItem key={circuito} value={circuito}>
+                            {circuito}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                )}
+
+                {/* Botão de busca */}
+                {selectedCircuito && (
+                  <Box display="flex" justifyContent="center">
+                    <Button 
+                      variant="contained" 
+                      color="primary" 
+                      onClick={handleSearch}
+                      disabled={loading}
+                      startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
+                      size="large"
+                      sx={{ minWidth: 200 }}
+                    >
+                      {loading ? 'Buscando...' : 'Buscar Circuito'}
+                    </Button>
+                  </Box>
+                )}
+              </CardContent>
+            </Card>
+          )}
+          
+          {tab === 5 && (
+            <Card sx={{ mb: 3, borderRadius: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ContactSupportIcon color="primary" />
+                  Busca por GGL e GR
+                </Typography>
+                <Box display="flex" gap={2} alignItems="flex-end">
+                  <TextField
+                    label="GGL ou GR"
+                    value={gglGrSearch}
+                    onChange={e => setGglGrSearch(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    fullWidth
+                    placeholder="Digite o nome do GGL ou GR"
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position="start">
+                          <ContactSupportIcon color="action" />
+                        </InputAdornment>
+                      ),
+                    }}
+                  />
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    onClick={handleSearch} 
+                    disabled={loading || !gglGrSearch}
+                    startIcon={loading ? <CircularProgress size={20} /> : <SearchIcon />}
+                    sx={{ minWidth: 120 }}
+                  >
+                    {loading ? 'Buscando...' : 'Buscar'}
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
           )}
         </Box>
-      )}
-      
-      {tab === 5 && (
-        <Box p={2}>
-          <Typography>Busca por GGL e GR</Typography>
-          <Box display="flex" gap={2} mb={3} mt={2}>
-            <TextField
-              label="Nome do GGL ou GR"
-              value={gglGrSearch}
-              onChange={e => setGglGrSearch(e.target.value)}
-              onKeyPress={handleKeyPress}
-              fullWidth
-              placeholder="Digite o nome do GGL ou GR"
-            />
-            <Button variant="contained" color="primary" onClick={handleSearch} disabled={loading || !gglGrSearch}>
-              Buscar
-            </Button>
-          </Box>
-        </Box>
-      )}
-      
-      {/* Loader e feedback visual aprimorado */}
-      {loading && (
-        <Box display="flex" flexDirection="column" alignItems="center" justifyContent="center" minHeight={200} my={4}>
-          <CircularProgress size={48} thickness={5} />
-          <Typography mt={2} fontWeight={600} color="text.secondary">Buscando...</Typography>
-        </Box>
-      )}
-      {error && <Alert severity="error" sx={{ my: 2 }}>{error}</Alert>}
+      </Fade>
 
-      {/* Filtro de status da loja */}
-      {result?.lojas && result.lojas.length > 0 && (
-        <Box display="flex" alignItems="center" gap={2} mb={2}>
-          <FormControl size="small" sx={{ minWidth: 180 }}>
-            <InputLabel>Status da Loja</InputLabel>
-            <Select
-              value={statusFilter}
-              label="Status da Loja"
-              onChange={e => setStatusFilter(e.target.value)}
-            >
-              {statusOptions.map(opt => (
-                <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <Typography variant="body2" color="text.secondary">
-            {filteredLojas.length} loja(s) encontrada(s) com o status selecionado
-          </Typography>
-        </Box>
+      {/* Resultados */}
+      {error && (
+        <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+          {error}
+        </Alert>
       )}
 
-      {/* Exibir todos os resultados encontrados */}
       {result && (
-        <Container maxWidth="md" sx={{ mb: 4, mt: 2 }}>
-          {/* Lojas - exibição condicional */}
-          {tab === 5 && filteredAndSortedLojas && (
-            <Box mb={3}>
-              {/* Resumo estatístico e busca rápida */}
-              <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems={{ xs: 'stretch', md: 'center' }} gap={2} mb={2} flexWrap="wrap">
-                <Box flex={1} display="flex" alignItems="center" gap={1} flexWrap="wrap">
-                  <SearchIcon />
-                  <TextField
-                    size="small"
-                    placeholder="Buscar por nome, código ou cidade..."
-                    value={quickSearch}
-                    onChange={e => setQuickSearch(e.target.value)}
-                    sx={{ minWidth: 220 }}
-                  />
-                  <SortIcon sx={{ ml: 2 }} />
-                  <Button
-                    size="small"
-                    variant={sortField === 'nome' ? 'contained' : 'outlined'}
-                    onClick={() => setSortField('nome')}
-                  >Nome</Button>
-                  <Button
-                    size="small"
-                    variant={sortField === 'codigo' ? 'contained' : 'outlined'}
-                    onClick={() => setSortField('codigo')}
-                  >Código</Button>
-                  <Button
-                    size="small"
-                    variant={sortField === 'cidade' ? 'contained' : 'outlined'}
-                    onClick={() => setSortField('cidade')}
-                  >Cidade</Button>
-                  <Button
-                    size="small"
-                    onClick={() => setSortAsc(a => !a)}
-                  >{sortAsc ? 'A-Z' : 'Z-A'}</Button>
-                </Box>
-                <Box display="flex" alignItems="center" gap={2} flexWrap="wrap" minWidth={0}>
-                  <PieChartOutlineIcon />
-                  <Typography variant="body2">Total: <b>{totalLojas}</b></Typography>
-                  <Typography variant="body2" color="success.main">Ativas: <b>{statusCount['ATIVA'] || 0}</b></Typography>
-                  <Typography variant="body2" color="error.main">Inativas: <b>{statusCount['INATIVA'] || 0}</b></Typography>
-                  <Typography variant="body2" color="warning.main">Pendente: <b>{statusCount['PENDENTE'] || 0}</b></Typography>
-                  {cidadesMaisFrequentes.length > 0 && (
-                    <Typography variant="body2" sx={{ maxWidth: { xs: '100%', md: 220 }, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      Cidades + comuns: {cidadesMaisFrequentes.map(([c, n]) => `${c} (${n})`).join(', ')}
-                    </Typography>
-                  )}
-                  <Box width={60} height={60} minWidth={60}>
-                    <ResponsiveContainer width="100%" height="100%">
-                      <PieChart>
-                        <Pie data={statusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={25}>
-                          {statusData.map((entry, idx) => (
-                            <Cell key={`cell-${idx}`} fill={entry.color} />
-                          ))}
-                        </Pie>
-                        <RechartsTooltip />
-                      </PieChart>
-                    </ResponsiveContainer>
-                  </Box>
-                </Box>
-              </Box>
-              {/* Lista de lojas (restante do código permanece igual, mas usa filteredAndSortedLojas) */}
-              <List sx={{ bgcolor: 'background.paper', borderRadius: 2, boxShadow: 2, p: 0 }}>
+        <Zoom in timeout={500}>
+          <Box>
+            {/* Estatísticas dos resultados */}
+            {totalLojas > 0 && (
+              <Grid container spacing={3} sx={{ mb: 3 }}>
+                <Grid item xs={12} md={6}>
+                  <Card sx={{ borderRadius: 3 }}>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <PieChartOutlineIcon color="primary" />
+                        Distribuição por Status
+                      </Typography>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <PieChart>
+                          <Pie
+                            data={statusData}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={60}
+                            fill="#8884d8"
+                            dataKey="value"
+                          >
+                            {statusData.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <RechartsTooltip />
+                        </PieChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </Grid>
+                
+                <Grid item xs={12} md={6}>
+                  <Card sx={{ borderRadius: 3 }}>
+                    <CardContent>
+                      <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <TrendingUpIcon color="primary" />
+                        Top Cidades
+                      </Typography>
+                      <ResponsiveContainer width="100%" height={200}>
+                        <BarChart data={cidadesMaisFrequentes}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="0" />
+                          <YAxis />
+                          <RechartsTooltip />
+                          <Bar dataKey="1" fill="#8884d8" radius={[4, 4, 0, 0]} />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+                </Grid>
+              </Grid>
+            )}
+
+            {/* Lista de resultados */}
+            <Card sx={{ borderRadius: 3 }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  📊 Resultados ({totalLojas} encontrados)
+                </Typography>
+                
                 {filteredAndSortedLojas.map((loja, idx) => {
-                  const nome = loja.nome || (loja as any)['NOME'] || (loja as any)['LOJAS'] || '-';
-                  const codigo = loja.id || (loja as any)['codigo'] || (loja as any)['CODIGO'] || '-';
-                  const status = loja.status || (loja as any)['STATUS'] || (loja as any)['Status_Loja'] || '-';
-                  const cidade = loja.cidade || (loja as any)['CIDADE'] || '-';
-                  const uf = loja.uf || (loja as any)['UF'] || '-';
-                  const endereco = loja.endereco || (loja as any)['ENDERECO'] || (loja as any)['ENDEREÇO'] || '-';
-                  const email = (loja as any)['EMAIL'] || (loja as any)['E-MAIL'] || '';
-                  const telefone = (loja as any)['TELEFONE'] || (loja as any)['TELEFONE 1'] || '';
-                  // Funções de ação rápida
                   const handleCopy = (text: string, type: string) => {
                     navigator.clipboard.writeText(text);
-                    setCopied(type + idx);
-                    setTimeout(() => setCopied(''), 1200);
+                    setCopied(`${type}-${idx}`);
+                    setTimeout(() => setCopied(''), 2000);
                   };
+
                   const handleExpand = () => setExpandedIdx(expandedIdx === idx ? null : idx);
+
                   const handleMap = () => {
-                    const url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(endereco + ', ' + cidade + ', ' + uf)}`;
-                    window.open(url, '_blank');
+                    const endereco = loja.endereco || (loja as any)['ENDEREÇO'] || '';
+                    if (endereco) {
+                      window.open(`https://www.google.com/maps/search/${encodeURIComponent(endereco)}`, '_blank');
+                    }
                   };
+
                   const handleEmail = () => {
-                    if (email) window.open(`mailto:${email}`);
+                    const email = loja.email || (loja as any)['EMAIL'] || '';
+                    if (email) {
+                      window.open(`mailto:${email}`, '_blank');
+                    }
                   };
+
                   return (
-                    <React.Fragment key={loja.id || idx}>
-                      <ListItem
-                        alignItems="flex-start"
-                        sx={{
-                          bgcolor: idx % 2 === 0 ? 'background.default' : 'background.paper',
-                          '&:hover': { bgcolor: 'action.hover', boxShadow: 2 },
-                          py: 2, px: { xs: 1, md: 2 },
-                          display: 'flex',
-                          flexDirection: { xs: 'column', sm: 'row' },
-                          alignItems: { xs: 'flex-start', sm: 'center' },
-                          gap: 2,
-                          outline: expandedIdx === idx ? '2px solid #1976d2' : 'none',
-                          transition: 'outline 0.2s',
-                        }}
-                        tabIndex={0}
-                        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') handleExpand(); }}
-                        secondaryAction={
-                          <Box display="flex" alignItems="center" gap={1}>
-                            <Tooltip title={copied === 'carimbo'+idx ? 'Copiado!' : 'Copiar carimbo'} open={copied === 'carimbo'+idx || undefined}>
-                              <ContentCopyIcon
-                                fontSize="small"
-                                sx={{ cursor: 'pointer', ml: 1 }}
-                                onClick={() => handleCopy(`**CARIMBO - CONSULTA VD**\nLoja: ${nome}\nCódigo: ${codigo}\nCidade: ${cidade}\nUF: ${uf}\nStatus: ${status}`,'carimbo')}
-                                titleAccess="Copiar carimbo"
-                              />
-                            </Tooltip>
-                            <Tooltip title="Ver no mapa">
-                              <RoomIcon fontSize="small" sx={{ cursor: 'pointer' }} onClick={handleMap} />
-                            </Tooltip>
-                            {email && (
-                              <Tooltip title="Enviar e-mail">
-                                <EmailIcon fontSize="small" sx={{ cursor: 'pointer' }} onClick={handleEmail} />
-                              </Tooltip>
-                            )}
-                            {telefone && (
-                              <Tooltip title={copied === 'tel'+idx ? 'Copiado!' : 'Copiar telefone'} open={copied === 'tel'+idx || undefined}>
-                                <PhoneIcon fontSize="small" sx={{ cursor: 'pointer' }} onClick={() => handleCopy(telefone, 'tel')} />
-                              </Tooltip>
-                            )}
-                            <Tooltip title={expandedIdx === idx ? 'Recolher detalhes' : 'Expandir detalhes'}>
-                              <ExpandMoreIcon
-                                fontSize="small"
-                                sx={{ cursor: 'pointer', transform: expandedIdx === idx ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}
-                                onClick={handleExpand}
-                              />
-                            </Tooltip>
-                            <Chip label={status} color={status === 'ATIVA' ? 'success' : status === 'INATIVA' ? 'error' : status === 'PENDENTE' ? 'warning' : 'default'} size="small" sx={{ fontWeight: 700 }} />
-                          </Box>
-                        }
-                      >
-                        <ListItemIcon sx={{ minWidth: 36 }}>
+                    <Accordion 
+                      key={idx} 
+                      expanded={expandedIdx === idx}
+                      onChange={handleExpand}
+                      sx={{ 
+                        mb: 1, 
+                        borderRadius: 2,
+                        '&:before': { display: 'none' },
+                        boxShadow: 2
+                      }}
+                    >
+                      <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, width: '100%' }}>
                           <BusinessIcon color="primary" />
-                        </ListItemIcon>
-                        <Box flex={1} minWidth={0}>
-                          <Typography variant="subtitle1" fontWeight={800} fontSize={18} noWrap>{nome}</Typography>
-                          <Box display="flex" flexWrap="wrap" gap={2} mt={0.5}>
-                            <Typography variant="body2" color="text.secondary">
-                              Código: <b>{codigo}</b>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography variant="subtitle1" fontWeight={600}>
+                              {loja.nome || (loja as any)['NOME'] || (loja as any)['LOJAS']}
                             </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              Cidade: <b>{cidade}</b> / UF: <b>{uf}</b>
+                            <Typography variant="body2" color="textSecondary">
+                              Código: {loja.id || (loja as any)['codigo'] || (loja as any)['CODIGO']} | 
+                              Cidade: {loja.cidade || (loja as any)['CIDADE']}
                             </Typography>
                           </Box>
+                          <Chip 
+                            label={loja.status || (loja as any)['STATUS'] || (loja as any)['Status_Loja']} 
+                            color={loja.status === 'ATIVA' ? 'success' : loja.status === 'INATIVA' ? 'error' : 'warning'}
+                            size="small"
+                          />
                         </Box>
-                      </ListItem>
-                      <Collapse in={expandedIdx === idx} timeout="auto" unmountOnExit>
-                        <Box px={4} py={2} bgcolor="background.default" borderRadius={2} mb={1}>
-                          <Typography variant="body2" fontWeight={700} mb={1}>Endereço:</Typography>
-                          <Typography variant="body2" mb={1}>{endereco}</Typography>
-                          {telefone && (
-                            <Typography variant="body2" mb={1}><PhoneIcon fontSize="inherit" sx={{ mr: 1 }} />{telefone}</Typography>
-                          )}
-                          {email && (
-                            <Typography variant="body2" mb={1}><EmailIcon fontSize="inherit" sx={{ mr: 1 }} />{email}</Typography>
-                          )}
-                        </Box>
-                      </Collapse>
-                      {idx < filteredAndSortedLojas.length - 1 && <Divider component="li" />}
-                    </React.Fragment>
+                      </AccordionSummary>
+                      <AccordionDetails>
+                        <LojaDetalheCard loja={loja} />
+                      </AccordionDetails>
+                    </Accordion>
                   );
                 })}
-              </List>
-            </Box>
-          )}
-          {/* Lojas - cards detalhados para as demais abas */}
-          {tab !== 5 && filteredLojas && filteredLojas.length > 0 && (
-            <Box mb={3}>
-              <Typography variant="h6">Lojas Encontradas</Typography>
-              {filteredLojas.map((loja, idx) => (
-                <Box key={loja.id || idx} mb={2}>
-                  <LojaDetalheCard data={loja} />
-                  <PeopleCard data={loja} />
-                  <PeopleContactCard data={loja} />
-                  <CarimboGenerator data={loja} />
-                </Box>
-              ))}
-            </Box>
-          )}
-          {/* Nenhum resultado de loja */}
-          {result.lojas && filteredLojas.length === 0 && (
-            <Alert severity="info">Nenhuma loja encontrada com o status selecionado.</Alert>
-          )}
-          {/* Circuitos */}
-          {result.circuitos && result.circuitos.length > 0 && (
-            <Box mb={3}>
-              <Typography variant="h6">Circuitos Encontrados</Typography>
-              <ul>
-                {result.circuitos.map((circuito, idx) => (
-                  <li key={circuito.id || idx}>
-                    <b>{circuito.designacao}</b> - Operadora: {circuito.operadora} - Tipo: {circuito.tipo} - Status: {circuito.status}
-                  </li>
-                ))}
-              </ul>
-            </Box>
-          )}
-          {/* Inventário */}
-          {result.inventario && result.inventario.length > 0 && (
-            <Box mb={3}>
-              <Typography variant="h6">Inventário Encontrado</Typography>
-              <ul>
-                {result.inventario.map((item, idx) => (
-                  <li key={item.id || idx}>
-                    <b>{item.equipamento}</b> - Modelo: {item.modelo} - Serial: {item.serial} - Status: {item.status}
-                  </li>
-                ))}
-              </ul>
-            </Box>
-          )}
-          {/* Nenhum resultado */}
-          {(!result.lojas?.length && !result.circuitos?.length && !result.inventario?.length) && (
-            <Alert severity="info">Nenhum resultado encontrado.</Alert>
-          )}
-        </Container>
+              </CardContent>
+            </Card>
+          </Box>
+        </Zoom>
       )}
-    </Box>
+
+      {/* FAB para ações rápidas */}
+      <Fab
+        color="primary"
+        aria-label="search"
+        sx={{ 
+          position: 'fixed', 
+          bottom: 16, 
+          right: 16,
+          boxShadow: 4,
+          '&:hover': {
+            transform: 'scale(1.1)',
+            boxShadow: 6
+          },
+          transition: 'all 0.2s ease'
+        }}
+        onClick={handleSearch}
+        disabled={loading}
+      >
+        {loading ? <CircularProgress size={24} color="inherit" /> : <SearchIcon />}
+      </Fab>
+    </Container>
   );
 };
 
