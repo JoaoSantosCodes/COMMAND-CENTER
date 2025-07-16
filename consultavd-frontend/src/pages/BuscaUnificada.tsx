@@ -1322,4 +1322,7 @@ Gerado automaticamente`;
   );
 };
 
-export default BuscaUnificada; 
+export default BuscaUnificada;
+
+// Garantir que o arquivo seja reconhecido como módulo
+export {}; 
