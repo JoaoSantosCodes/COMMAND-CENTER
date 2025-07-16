@@ -63,6 +63,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import StoreIcon from '@mui/icons-material/Store';
 import WifiIcon from '@mui/icons-material/Wifi';
 import ContactSupportIcon from '@mui/icons-material/ContactSupport';
+import CheckIcon from '@mui/icons-material/Check';
 
 // Hook para debounce
 const useDebounce = (value: string, delay: number) => {
@@ -328,6 +329,45 @@ const BuscaUnificada: React.FC = () => {
     setGglGrSearch('');
     setResult(null);
     setError(null);
+  }, []);
+
+  // Função para gerar carimbo
+  const generateCarimbo = useCallback((loja: any) => {
+    const nome = loja.nome || (loja as any)['NOME'] || (loja as any)['LOJAS'] || 'N/A';
+    const codigo = loja.id || (loja as any)['codigo'] || (loja as any)['CODIGO'] || 'N/A';
+    const cidade = loja.cidade || (loja as any)['CIDADE'] || 'N/A';
+    const uf = loja.uf || (loja as any)['UF'] || 'N/A';
+    const status = loja.status || (loja as any)['STATUS'] || (loja as any)['Status_Loja'] || 'N/A';
+    const endereco = loja.endereco || (loja as any)['ENDEREÇO'] || (loja as any)['ENDERECO'] || 'N/A';
+    const email = (loja as any)['EMAIL'] || 'N/A';
+    const telefone = (loja as any)['TELEFONE'] || (loja as any)['TELEFONE 1'] || 'N/A';
+    
+    const dataAtual = new Date().toLocaleDateString('pt-BR');
+    const horaAtual = new Date().toLocaleTimeString('pt-BR');
+    
+    return `**CARIMBO - CONSULTA VD**
+📅 Data: ${dataAtual} às ${horaAtual}
+
+🏢 **INFORMAÇÕES DA LOJA**
+• Nome: ${nome}
+• Código: ${codigo}
+• Cidade: ${cidade} - ${uf}
+• Status: ${status}
+
+📍 **ENDEREÇO**
+${endereco}
+
+📞 **CONTATOS**
+• Telefone: ${telefone}
+• Email: ${email}
+
+🔍 **BUSCA REALIZADA**
+Tipo: Busca Loja > Operadora > Circuito
+Data/Hora: ${dataAtual} ${horaAtual}
+
+---
+Sistema: COMMAND CENTER - Consulta VD
+Gerado automaticamente`;
   }, []);
 
   return (
@@ -1021,7 +1061,7 @@ const BuscaUnificada: React.FC = () => {
                     }
                   };
 
-                  return (
+                                    return (
                     <Accordion 
                       key={idx} 
                       expanded={expandedIdx === idx}
@@ -1045,16 +1085,40 @@ const BuscaUnificada: React.FC = () => {
                               Cidade: {loja.cidade || (loja as any)['CIDADE']}
                             </Typography>
                           </Box>
-                          <Chip 
-                            label={loja.status || (loja as any)['STATUS'] || (loja as any)['Status_Loja']} 
-                            color={loja.status === 'ATIVA' ? 'success' : loja.status === 'INATIVA' ? 'error' : 'warning'}
-                            size="small"
-                          />
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Chip 
+                              label={loja.status || (loja as any)['STATUS'] || (loja as any)['Status_Loja']} 
+                              color={loja.status === 'ATIVA' ? 'success' : loja.status === 'INATIVA' ? 'error' : 'warning'}
+                              size="small"
+                            />
+                            <Tooltip title="Gerar carimbo">
+                              <IconButton 
+                                size="small" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const carimbo = generateCarimbo(loja);
+                                  navigator.clipboard.writeText(carimbo);
+                                  setCopied(`carimbo-${idx}`);
+                                  setTimeout(() => setCopied(''), 2000);
+                                }}
+                                sx={{ 
+                                  bgcolor: copied === `carimbo-${idx}` ? 'success.main' : 'transparent',
+                                  color: copied === `carimbo-${idx}` ? 'white' : 'primary.main',
+                                  '&:hover': {
+                                    bgcolor: 'primary.main',
+                                    color: 'white'
+                                  }
+                                }}
+                              >
+                                {copied === `carimbo-${idx}` ? <CheckIcon /> : <ContentCopyIcon />}
+                              </IconButton>
+                            </Tooltip>
+                          </Box>
                         </Box>
                       </AccordionSummary>
-                                             <AccordionDetails>
-                         <LojaDetalheCard data={loja} />
-                       </AccordionDetails>
+                      <AccordionDetails>
+                        <LojaDetalheCard data={loja} />
+                      </AccordionDetails>
                     </Accordion>
                   );
                 })}
